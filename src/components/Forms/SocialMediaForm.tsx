@@ -9,7 +9,11 @@ import {
   Box,
   AppBar,
   Toolbar,
-  Alert
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -25,6 +29,7 @@ dayjs.locale('tr');
 
 const SocialMediaForm: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [platform, setPlatform] = useState('');
   const [followers, setFollowers] = useState('');
   const [posts, setPosts] = useState('');
   const [mostEngagedPost, setMostEngagedPost] = useState('');
@@ -39,7 +44,7 @@ const SocialMediaForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !followers || !posts || !mostEngagedPost || !leastEngagedPost) {
+    if (!selectedDate || !platform || !followers || !posts || !mostEngagedPost || !leastEngagedPost) {
       setError('Tüm alanları doldurun');
       return;
     }
@@ -51,6 +56,7 @@ const SocialMediaForm: React.FC = () => {
       const reportData = {
         month: selectedDate.format('YYYY-MM'),
         year: selectedDate.year(),
+        platform: platform as 'Instagram' | 'Youtube' | 'Facebook' | 'LinkedIn' | 'X',
         followers: parseInt(followers),
         posts: parseInt(posts),
         mostEngagedPost,
@@ -63,6 +69,7 @@ const SocialMediaForm: React.FC = () => {
       setMessage('Sosyal medya raporu başarıyla kaydedildi!');
       
       // Form temizle
+      setPlatform('');
       setFollowers('');
       setPosts('');
       setMostEngagedPost('');
@@ -132,6 +139,21 @@ const SocialMediaForm: React.FC = () => {
                 }}
               />
             </LocalizationProvider>
+
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel>Sosyal Medya Platformu</InputLabel>
+              <Select
+                value={platform}
+                label="Sosyal Medya Platformu"
+                onChange={(e) => setPlatform(e.target.value)}
+              >
+                <MenuItem value="Instagram">Instagram</MenuItem>
+                <MenuItem value="Youtube">Youtube</MenuItem>
+                <MenuItem value="Facebook">Facebook</MenuItem>
+                <MenuItem value="LinkedIn">LinkedIn</MenuItem>
+                <MenuItem value="X">X</MenuItem>
+              </Select>
+            </FormControl>
 
             <TextField
               margin="normal"

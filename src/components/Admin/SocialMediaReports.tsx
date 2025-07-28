@@ -39,6 +39,7 @@ const SocialMediaReports: React.FC = () => {
   const [filteredReports, setFilteredReports] = useState<SocialMediaReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [platformFilter, setPlatformFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchReports();
@@ -47,7 +48,7 @@ const SocialMediaReports: React.FC = () => {
   useEffect(() => {
     filterReports();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reports, yearFilter]);
+  }, [reports, yearFilter, platformFilter]);
 
   const fetchReports = async () => {
     try {
@@ -70,16 +71,27 @@ const SocialMediaReports: React.FC = () => {
   };
 
   const filterReports = () => {
-    if (yearFilter === 'all') {
-      setFilteredReports(reports);
-    } else {
-      setFilteredReports(reports.filter(report => report.year.toString() === yearFilter));
+    let filtered = reports;
+    
+    if (yearFilter !== 'all') {
+      filtered = filtered.filter(report => report.year.toString() === yearFilter);
     }
+    
+    if (platformFilter !== 'all') {
+      filtered = filtered.filter(report => report.platform === platformFilter);
+    }
+    
+    setFilteredReports(filtered);
   };
 
   const getAvailableYears = () => {
     const years = Array.from(new Set(reports.map(report => report.year)));
     return years.sort((a, b) => b - a);
+  };
+
+  const getAvailablePlatforms = () => {
+    const platforms = Array.from(new Set(reports.map(report => report.platform)));
+    return platforms.sort();
   };
 
   const getChartData = () => {
@@ -113,6 +125,7 @@ const SocialMediaReports: React.FC = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
+      'Platform': report.platform,
       'Takipçi Sayısı': report.followers,
       'Gönderi Sayısı': report.posts,
       'En Çok Etkileşim': report.mostEngagedPost,
@@ -152,6 +165,20 @@ const SocialMediaReports: React.FC = () => {
         </Typography>
         
         <Box display="flex" gap={2}>
+          <TextField
+            select
+            label="Platform Filtresi"
+            value={platformFilter}
+            onChange={(e) => setPlatformFilter(e.target.value)}
+            size="small"
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="all">Tüm Platformlar</MenuItem>
+            {getAvailablePlatforms().map(platform => (
+              <MenuItem key={platform} value={platform}>{platform}</MenuItem>
+            ))}
+          </TextField>
+          
           <TextField
             select
             label="Yıl Filtresi"
@@ -240,6 +267,7 @@ const SocialMediaReports: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
+                  <TableCell><strong>Platform</strong></TableCell>
                   <TableCell align="right"><strong>Takipçi Sayısı</strong></TableCell>
                   <TableCell align="right"><strong>Gönderi Sayısı</strong></TableCell>
                   <TableCell><strong>En Çok Etkileşim</strong></TableCell>
@@ -255,6 +283,14 @@ const SocialMediaReports: React.FC = () => {
                         label={`${report.month}`}
                         color="primary"
                         size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={report.platform}
+                        color="secondary"
+                        size="small"
+                        variant="outlined"
                       />
                     </TableCell>
                     <TableCell align="right">

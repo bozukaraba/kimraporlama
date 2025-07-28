@@ -10,6 +10,7 @@ export interface SocialMediaReport {
   id?: string;
   month: string;
   year: number;
+  platform: 'Instagram' | 'Youtube' | 'Facebook' | 'LinkedIn' | 'X';
   followers: number;
   posts: number;
   mostEngagedPost: string;
