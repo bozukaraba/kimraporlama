@@ -51,6 +51,7 @@ const RPAReports: React.FC = () => {
 
   useEffect(() => {
     filterReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports, yearFilter]);
 
   const fetchReports = async () => {

@@ -28,7 +28,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from 'recharts';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
@@ -49,6 +48,7 @@ const NewsReports: React.FC = () => {
 
   useEffect(() => {
     filterReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports, yearFilter]);
 
   const fetchReports = async () => {

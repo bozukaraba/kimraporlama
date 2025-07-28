@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Grid,
   Card,
   CardContent,
   Typography,
   Box,
-  CircularProgress,
-  Chip
+  CircularProgress
 } from '@mui/material';
 import {
   Assessment,
   Article,
   Analytics,
   AutoAwesome,
-  TrendingUp,
-  TrendingDown
+  TrendingUp
 } from '@mui/icons-material';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,10 +25,8 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 
 interface ReportSummary {
   socialMedia: number;
