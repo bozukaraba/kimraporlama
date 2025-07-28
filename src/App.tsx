@@ -58,53 +58,64 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } />
-            <Route path="/register" element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute adminOnly>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-            <Route path="/sosyal-medya" element={
-              <ProtectedRoute>
-                <SocialMediaForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/haberler" element={
-              <ProtectedRoute>
-                <NewsForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/web-analitik" element={
-              <ProtectedRoute>
-                <WebAnalyticsForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/rpa-rapor" element={
-              <ProtectedRoute>
-                <RPAForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${process.env.PUBLIC_URL}/bgbg.jpeg)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/login" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute adminOnly>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } />
+              <Route path="/sosyal-medya" element={
+                <ProtectedRoute>
+                  <SocialMediaForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/haberler" element={
+                <ProtectedRoute>
+                  <NewsForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/web-analitik" element={
+                <ProtectedRoute>
+                  <WebAnalyticsForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/rpa-rapor" element={
+                <ProtectedRoute>
+                  <RPAForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/" element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </div>
     </ThemeProvider>
   );
 }
