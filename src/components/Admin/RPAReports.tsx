@@ -27,8 +27,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell
@@ -87,40 +85,38 @@ const RPAReports: React.FC = () => {
     return years.sort((a, b) => b - a);
   };
 
-  const getChartData = () => {
+  const getEmailData = () => {
     return filteredReports
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        totalEmails: report.totalEmails,
-        distributedEmails: report.distributedEmails,
-        efficiency: ((report.distributedEmails / report.totalEmails) * 100).toFixed(1)
+        incomingEmails: report.incomingEmails,
+        sentEmails: report.sentEmails
       }));
   };
 
-  const getDepartmentData = () => {
-    const departmentCount: Record<string, number> = {};
+  const getTopEmailRecipientsData = () => {
+    const emailCount: Record<string, number> = {};
     
     filteredReports.forEach(report => {
-      report.topDepartments.forEach(dept => {
-        departmentCount[dept] = (departmentCount[dept] || 0) + 1;
+      report.topEmailRecipients.forEach(recipient => {
+        emailCount[recipient.email] = (emailCount[recipient.email] || 0) + recipient.count;
       });
     });
 
-    return Object.entries(departmentCount)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10); // En çok görünen 10 birim
+    return Object.entries(emailCount)
+      .map(([email, count]) => ({ email, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // En çok mail alan 10 adres
   };
 
   const exportToCSV = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
-      'Toplam Mail': report.totalEmails,
-      'Dağıtılan Mail': report.distributedEmails,
-      'Verimlilik (%)': ((report.distributedEmails / report.totalEmails) * 100).toFixed(1),
-      'En Çok Dağıtılan Birimler': report.topDepartments.join('; '),
+      'Gelen Mail Sayısı': report.incomingEmails,
+      'İletilen Mail Sayısı': report.sentEmails,
+      'En Çok Mail Alan Adresler': report.topEmailRecipients.map(r => `${r.email}(${r.count})`).join('; '),
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -146,14 +142,14 @@ const RPAReports: React.FC = () => {
     );
   }
 
-  const chartData = getChartData();
-  const departmentData = getDepartmentData();
+  const emailData = getEmailData();
+  const topEmailRecipientsData = getTopEmailRecipientsData();
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" gutterBottom>
-          RPA Mail Dağıtım Raporları
+          RPA Raporları (info@turksat.com.tr)
         </Typography>
         
         <Box display="flex" gap={2}>
@@ -183,80 +179,56 @@ const RPAReports: React.FC = () => {
       </Box>
 
       {/* Grafik Görünümü */}
-      {chartData.length > 0 && (
+      {emailData.length > 0 && (
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 3, mb: 3 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Mail Dağıtım Trendi
+                  Gelen/İletilen Mailler
                 </Typography>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData}>
+                  <BarChart data={emailData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
                     <Legend />
                     <Bar 
-                      dataKey="totalEmails" 
+                      dataKey="incomingEmails" 
                       fill="#8884d8" 
-                      name="Toplam Mail"
+                      name="Gelen Mail"
                     />
                     <Bar 
-                      dataKey="distributedEmails" 
+                      dataKey="sentEmails" 
                       fill="#82ca9d" 
-                      name="Dağıtılan Mail"
+                      name="İletilen Mail"
                     />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Dağıtım Verimliliği (%)
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="efficiency" 
-                      stroke="#ff7300" 
-                      name="Verimlilik (%)"
-                      strokeWidth={3}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
           </Box>
 
-          {departmentData.length > 0 && (
+          {topEmailRecipientsData.length > 0 && (
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  En Çok Mail Alan Birimler
+                  En Çok Başvuru/Talep Alan Mailler
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
                   <PieChart>
                     <Pie
-                      data={departmentData}
+                      data={topEmailRecipientsData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                      label={({ email, percent }) => `${email.split('@')[0]} ${((percent || 0) * 100).toFixed(0)}%`}
                       outerRadius={120}
                       fill="#8884d8"
-                      dataKey="value"
+                      dataKey="count"
                     >
-                      {departmentData.map((entry, index) => (
+                      {topEmailRecipientsData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -281,61 +253,58 @@ const RPAReports: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
-                  <TableCell align="right"><strong>Toplam Mail</strong></TableCell>
-                  <TableCell align="right"><strong>Dağıtılan Mail</strong></TableCell>
-                  <TableCell align="right"><strong>Verimlilik</strong></TableCell>
-                  <TableCell><strong>En Çok Dağıtılan Birimler</strong></TableCell>
+                  <TableCell align="right"><strong>Gelen Mail</strong></TableCell>
+                  <TableCell align="right"><strong>İletilen Mail</strong></TableCell>
+                  <TableCell><strong>En Çok Mail Alan Adresler</strong></TableCell>
                   <TableCell><strong>Tarih</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredReports.map((report) => {
-                  const efficiency = ((report.distributedEmails / report.totalEmails) * 100);
-                  return (
-                    <TableRow key={report.id} hover>
-                      <TableCell>
+                {filteredReports.map((report) => (
+                  <TableRow key={report.id} hover>
+                    <TableCell>
+                      <Chip 
+                        label={`${report.month}`}
+                        color="primary"
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="bold" color="primary">
+                        {report.incomingEmails.toLocaleString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="bold" color="success.main">
+                        {report.sentEmails.toLocaleString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {report.topEmailRecipients.slice(0, 3).map((recipient, index) => (
                         <Chip 
-                          label={`${report.month}`}
-                          color="primary"
+                          key={index}
+                          label={`${recipient.email.split('@')[0]} (${recipient.count})`}
                           size="small"
+                          variant="outlined"
+                          sx={{ mr: 0.5, mb: 0.5 }}
                         />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" fontWeight="bold" color="primary">
-                          {report.totalEmails.toLocaleString('tr-TR')}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" fontWeight="bold" color="success.main">
-                          {report.distributedEmails.toLocaleString('tr-TR')}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
+                      ))}
+                      {report.topEmailRecipients.length > 3 && (
                         <Chip 
-                          label={`${efficiency.toFixed(1)}%`}
-                          color={efficiency >= 90 ? 'success' : efficiency >= 70 ? 'warning' : 'error'}
+                          label={`+${report.topEmailRecipients.length - 3} daha`}
                           size="small"
+                          variant="outlined"
+                          color="secondary"
                         />
-                      </TableCell>
-                      <TableCell>
-                        {report.topDepartments.map((dept, index) => (
-                          <Chip 
-                            key={index}
-                            label={`${index + 1}. ${dept}`}
-                            size="small"
-                            variant="outlined"
-                            sx={{ mr: 0.5, mb: 0.5 }}
-                          />
-                        ))}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {report.createdAt?.toLocaleDateString('tr-TR')}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {report.createdAt?.toLocaleDateString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -356,4 +325,4 @@ const RPAReports: React.FC = () => {
   );
 };
 
-export default RPAReports; 
+export default RPAReports;

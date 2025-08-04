@@ -10,6 +10,7 @@ import AdminPanel from './components/Admin/AdminPanel';
 import SocialMediaForm from './components/Forms/SocialMediaForm';
 import NewsForm from './components/Forms/NewsForm';
 import WebAnalyticsForm from './components/Forms/WebAnalyticsForm';
+import CimerForm from './components/Forms/CimerForm';
 import RPAForm from './components/Forms/RPAForm';
 
 const theme = createTheme({
@@ -104,6 +105,11 @@ function App() {
               <Route path="/web-analitik" element={
                 <ProtectedRoute>
                   <WebAnalyticsForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/cimer" element={
+                <ProtectedRoute>
+                  <CimerForm />
                 </ProtectedRoute>
               } />
               <Route path="/rpa-rapor" element={

@@ -27,6 +27,7 @@ import ReportsOverview from './ReportsOverview';
 import SocialMediaReports from './SocialMediaReports';
 import NewsReports from './NewsReports';
 import WebAnalyticsReports from './WebAnalyticsReports';
+import CimerReports from './CimerReports';
 import RPAReports from './RPAReports';
 
 interface TabPanelProps {
@@ -165,15 +166,21 @@ const AdminPanel: React.FC = () => {
             />
             <Tab 
               icon={<BarChart />} 
-              label="RPA Rapor" 
+              label="CİMER" 
               id="admin-tab-4"
               aria-controls="admin-tabpanel-4"
             />
             <Tab 
-              icon={<People />} 
-              label="Kullanıcı Yönetimi" 
+              icon={<BarChart />} 
+              label="RPA Rapor" 
               id="admin-tab-5"
               aria-controls="admin-tabpanel-5"
+            />
+            <Tab 
+              icon={<People />} 
+              label="Kullanıcı Yönetimi" 
+              id="admin-tab-6"
+              aria-controls="admin-tabpanel-6"
             />
           </Tabs>
         </Box>
@@ -195,10 +202,14 @@ const AdminPanel: React.FC = () => {
         </TabPanel>
         
         <TabPanel value={tabValue} index={4}>
+          <CimerReports />
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={5}>
           <RPAReports />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={5}>
+        <TabPanel value={tabValue} index={6}>
           <Typography variant="h5" gutterBottom>
             Personel Listesi
           </Typography>

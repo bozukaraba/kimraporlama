@@ -95,30 +95,28 @@ const SocialMediaReports: React.FC = () => {
   };
 
   const getChartData = () => {
-    const monthlyData: { [key: string]: { month: string; followers: number; posts: number; count: number } } = {};
+    return filteredReports
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .map(report => ({
+        month: report.month,
+        platform: report.platform,
+        followers: report.followers,
+        posts: report.posts,
+        likes: report.likes,
+        comments: report.comments,
+        views: report.views,
+        newFollowers: report.newFollowers
+      }));
+  };
 
-    filteredReports.forEach(report => {
-      const monthKey = report.month;
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = {
-          month: monthKey,
-          followers: 0,
-          posts: 0,
-          count: 0
-        };
-      }
-      monthlyData[monthKey].followers += report.followers;
-      monthlyData[monthKey].posts += report.posts;
-      monthlyData[monthKey].count++;
-    });
-
-    // Ortalama al
-    Object.keys(monthlyData).forEach(key => {
-      monthlyData[key].followers = Math.round(monthlyData[key].followers / monthlyData[key].count);
-      monthlyData[key].posts = Math.round(monthlyData[key].posts / monthlyData[key].count);
-    });
-
-    return Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month));
+  const getEngagementData = () => {
+    return filteredReports
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .map(report => ({
+        month: report.month,
+        platform: report.platform,
+        totalEngagement: report.likes + report.comments + (report.shares || 0) + (report.retweets || 0)
+      }));
   };
 
   const exportToCSV = () => {
@@ -127,9 +125,14 @@ const SocialMediaReports: React.FC = () => {
       'Yıl': report.year,
       'Platform': report.platform,
       'Takipçi Sayısı': report.followers,
-      'Gönderi Sayısı': report.posts,
-      'En Çok Etkileşim': report.mostEngagedPost,
-      'En Az Etkileşim': report.leastEngagedPost,
+      'İleti Sayısı': report.posts,
+      'Beğeni': report.likes,
+      'Yorum': report.comments,
+      'Görüntülenme': report.views,
+      'Yeni Takipçi': report.newFollowers,
+      'Paylaşım': report.shares || '',
+      'Retweet': report.retweets || '',
+      'En Çok Etkileşim': report.mostEngagedPost || '',
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -156,6 +159,7 @@ const SocialMediaReports: React.FC = () => {
   }
 
   const chartData = getChartData();
+  const engagementData = getEngagementData();
 
   return (
     <Box>
@@ -207,48 +211,71 @@ const SocialMediaReports: React.FC = () => {
       {/* Grafik Görünümü */}
       {chartData.length > 0 && (
         <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 3, mb: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Takipçi Sayısı Trendi
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="followers" 
+                      stroke="#8884d8" 
+                      name="Takipçi Sayısı"
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Görüntülenme ve Beğeni
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                    <Legend />
+                    <Bar dataKey="views" fill="#8884d8" name="Görüntülenme" />
+                    <Bar dataKey="likes" fill="#82ca9d" name="Beğeni" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Box>
+
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Takipçi Sayısı Trendi
+                Toplam Etkileşim Trendi
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
+                <LineChart data={engagementData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
                   <Legend />
                   <Line 
                     type="monotone" 
-                    dataKey="followers" 
-                    stroke="#8884d8" 
-                    name="Takipçi Sayısı"
+                    dataKey="totalEngagement" 
+                    stroke="#ff7300" 
+                    name="Toplam Etkileşim"
                     strokeWidth={2}
                   />
                 </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card sx={{ mt: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Gönderi Sayısı Karşılaştırması
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar 
-                    dataKey="posts" 
-                    fill="#82ca9d" 
-                    name="Gönderi Sayısı"
-                  />
-                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -268,10 +295,13 @@ const SocialMediaReports: React.FC = () => {
                 <TableRow>
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
                   <TableCell><strong>Platform</strong></TableCell>
-                  <TableCell align="right"><strong>Takipçi Sayısı</strong></TableCell>
-                  <TableCell align="right"><strong>Gönderi Sayısı</strong></TableCell>
+                  <TableCell align="right"><strong>Takipçi</strong></TableCell>
+                  <TableCell align="right"><strong>İleti</strong></TableCell>
+                  <TableCell align="right"><strong>Beğeni</strong></TableCell>
+                  <TableCell align="right"><strong>Yorum</strong></TableCell>
+                  <TableCell align="right"><strong>Görüntülenme</strong></TableCell>
+                  <TableCell align="right"><strong>Yeni Takipçi</strong></TableCell>
                   <TableCell><strong>En Çok Etkileşim</strong></TableCell>
-                  <TableCell><strong>En Az Etkileşim</strong></TableCell>
                   <TableCell><strong>Tarih</strong></TableCell>
                 </TableRow>
               </TableHead>
@@ -299,29 +329,43 @@ const SocialMediaReports: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2" fontWeight="bold" color="success.main">
+                      <Typography variant="body2">
                         {report.posts}
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      <a 
-                        href={report.mostEngagedPost} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        style={{ color: '#1976d2', textDecoration: 'none' }}
-                      >
-                        Link görüntüle
-                      </a>
+                    <TableCell align="right">
+                      <Typography variant="body2" color="success.main">
+                        {report.likes.toLocaleString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2">
+                        {report.comments.toLocaleString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="bold">
+                        {report.views.toLocaleString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" color="secondary">
+                        +{report.newFollowers.toLocaleString('tr-TR')}
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <a 
-                        href={report.leastEngagedPost} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        style={{ color: '#1976d2', textDecoration: 'none' }}
-                      >
-                        Link görüntüle
-                      </a>
+                      {report.mostEngagedPost ? (
+                        <a 
+                          href={report.mostEngagedPost} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ color: '#1976d2', textDecoration: 'none' }}
+                        >
+                          Link görüntüle
+                        </a>
+                      ) : (
+                        '-'
+                      )}
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
@@ -350,4 +394,4 @@ const SocialMediaReports: React.FC = () => {
   );
 };
 
-export default SocialMediaReports; 
+export default SocialMediaReports;

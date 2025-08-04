@@ -9,11 +9,9 @@ import {
   Box,
   AppBar,
   Toolbar,
-  Alert,
-  MenuItem,
-  IconButton
+  Alert
 } from '@mui/material';
-import { ArrowBack, Add, Delete } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -27,10 +25,19 @@ dayjs.locale('tr');
 
 const NewsForm: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
-  const [status, setStatus] = useState('');
-  const [summary, setSummary] = useState('');
-  const [link, setLink] = useState('');
-  const [sources, setSources] = useState<string[]>(['']);
+  // Medyada Yer Alma (Haber Sayısı)
+  const [printNews, setPrintNews] = useState('');
+  const [tvNews, setTvNews] = useState('');
+  const [internetNews, setInternetNews] = useState('');
+  // Reklam Eşdeğeri (TL)
+  const [printAdEquiv, setPrintAdEquiv] = useState('');
+  const [tvAdEquiv, setTvAdEquiv] = useState('');
+  const [internetAdEquiv, setInternetAdEquiv] = useState('');
+  // Toplam Erişim (Kişi)
+  const [printReach, setPrintReach] = useState('');
+  const [tvReach, setTvReach] = useState('');
+  const [internetReach, setInternetReach] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -38,39 +45,15 @@ const NewsForm: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const statusOptions = [
-    { value: 'olumlu', label: 'Olumlu' },
-    { value: 'olumsuz', label: 'Olumsuz' },
-    { value: 'kritik', label: 'Kritik' }
-  ];
 
-  const handleAddSource = () => {
-    setSources([...sources, '']);
-  };
-
-  const handleRemoveSource = (index: number) => {
-    if (sources.length > 1) {
-      setSources(sources.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleSourceChange = (index: number, value: string) => {
-    const newSources = [...sources];
-    newSources[index] = value;
-    setSources(newSources);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !status || !summary || !link) {
-      setError('Tüm gerekli alanları doldurun');
-      return;
-    }
-
-    const validSources = sources.filter(source => source.trim() !== '');
-    if (validSources.length === 0) {
-      setError('En az bir haber kaynağı ekleyin');
+    if (!selectedDate || !printNews || !tvNews || !internetNews || 
+        !printAdEquiv || !tvAdEquiv || !internetAdEquiv ||
+        !printReach || !tvReach || !internetReach) {
+      setError('Tüm alanları doldurun');
       return;
     }
 
@@ -81,10 +64,21 @@ const NewsForm: React.FC = () => {
       const reportData = {
         month: selectedDate.format('YYYY-MM'),
         year: selectedDate.year(),
-        status,
-        summary,
-        link,
-        sources: validSources,
+        newsCount: {
+          print: parseInt(printNews),
+          tv: parseInt(tvNews),
+          internet: parseInt(internetNews)
+        },
+        adEquivalent: {
+          print: parseFloat(printAdEquiv),
+          tv: parseFloat(tvAdEquiv),
+          internet: parseFloat(internetAdEquiv)
+        },
+        totalReach: {
+          print: parseInt(printReach),
+          tv: parseInt(tvReach),
+          internet: parseInt(internetReach)
+        },
         userId: currentUser?.uid,
         createdAt: new Date()
       };
@@ -93,10 +87,15 @@ const NewsForm: React.FC = () => {
       setMessage('Haber raporu başarıyla kaydedildi!');
       
       // Form temizle
-      setStatus('');
-      setSummary('');
-      setLink('');
-      setSources(['']);
+      setPrintNews('');
+      setTvNews('');
+      setInternetNews('');
+      setPrintAdEquiv('');
+      setTvAdEquiv('');
+      setInternetAdEquiv('');
+      setPrintReach('');
+      setTvReach('');
+      setInternetReach('');
       
       setTimeout(() => {
         navigate('/dashboard');
@@ -130,7 +129,7 @@ const NewsForm: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h5" gutterBottom>
-            Basında Çıkan Haberler
+            Haber Raporu
           </Typography>
           
           {message && (
@@ -163,74 +162,95 @@ const NewsForm: React.FC = () => {
               />
             </LocalizationProvider>
 
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              select
-              label="Durum"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              {statusOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              multiline
-              rows={4}
-              label="Haber Bahsi (Kısa Özet)"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-            />
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Haber Linki"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="https://..."
-            />
+            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+              1.1. Medyada Yer Alma (Haber Sayısı)
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3 }}>
+              <TextField
+                required
+                type="number"
+                label="Basın"
+                value={printNews}
+                onChange={(e) => setPrintNews(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                type="number"
+                label="TV"
+                value={tvNews}
+                onChange={(e) => setTvNews(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                type="number"
+                label="İnternet Haber Sitesi"
+                value={internetNews}
+                onChange={(e) => setInternetNews(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+            </Box>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              Haber Kaynakları
+              1.2. Reklam Eşdeğeri (TL)
             </Typography>
-            
-            {sources.map((source, index) => (
-              <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TextField
-                  fullWidth
-                  label={`Kaynak ${index + 1}`}
-                  value={source}
-                  onChange={(e) => handleSourceChange(index, e.target.value)}
-                  sx={{ mr: 1 }}
-                />
-                {sources.length > 1 && (
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoveSource(index)}
-                  >
-                    <Delete />
-                  </IconButton>
-                )}
-              </Box>
-            ))}
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3 }}>
+              <TextField
+                required
+                type="number"
+                label="Basın"
+                value={printAdEquiv}
+                onChange={(e) => setPrintAdEquiv(e.target.value)}
+                inputProps={{ min: 0, step: 0.01 }}
+              />
+              <TextField
+                required
+                type="number"
+                label="TV"
+                value={tvAdEquiv}
+                onChange={(e) => setTvAdEquiv(e.target.value)}
+                inputProps={{ min: 0, step: 0.01 }}
+              />
+              <TextField
+                required
+                type="number"
+                label="İnternet Haber Sitesi"
+                value={internetAdEquiv}
+                onChange={(e) => setInternetAdEquiv(e.target.value)}
+                inputProps={{ min: 0, step: 0.01 }}
+              />
+            </Box>
 
-            <Button
-              startIcon={<Add />}
-              onClick={handleAddSource}
-              sx={{ mb: 3 }}
-            >
-              Kaynak Ekle
-            </Button>
+            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+              1.3. Toplam Erişim (Kişi)
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3 }}>
+              <TextField
+                required
+                type="number"
+                label="Basın"
+                value={printReach}
+                onChange={(e) => setPrintReach(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                type="number"
+                label="TV"
+                value={tvReach}
+                onChange={(e) => setTvReach(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                type="number"
+                label="İnternet Haber Sitesi"
+                value={internetReach}
+                onChange={(e) => setInternetReach(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+            </Box>
 
             <Button
               type="submit"

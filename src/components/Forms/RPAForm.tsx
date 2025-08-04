@@ -9,9 +9,10 @@ import {
   Box,
   AppBar,
   Toolbar,
-  Alert
+  Alert,
+  IconButton
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Add, Delete } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -25,11 +26,12 @@ dayjs.locale('tr');
 
 const RPAForm: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
-  const [totalEmails, setTotalEmails] = useState('');
-  const [distributedEmails, setDistributedEmails] = useState('');
-  const [department1, setDepartment1] = useState('');
-  const [department2, setDepartment2] = useState('');
-  const [department3, setDepartment3] = useState('');
+  // Gelen/İletilen Mailler
+  const [incomingEmails, setIncomingEmails] = useState('');
+  const [sentEmails, setSentEmails] = useState('');
+  // En Çok Başvuru/Talep Alan Mailler
+  const [topEmailRecipients, setTopEmailRecipients] = useState<Array<{email: string, count: string}>>([{email: '', count: ''}]);
+  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -37,22 +39,33 @@ const RPAForm: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
+  const handleAddEmailRecipient = () => {
+    setTopEmailRecipients([...topEmailRecipients, {email: '', count: ''}]);
+  };
+
+  const handleRemoveEmailRecipient = (index: number) => {
+    if (topEmailRecipients.length > 1) {
+      setTopEmailRecipients(topEmailRecipients.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleEmailRecipientChange = (index: number, field: 'email' | 'count', value: string) => {
+    const newRecipients = [...topEmailRecipients];
+    newRecipients[index][field] = value;
+    setTopEmailRecipients(newRecipients);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !totalEmails || !distributedEmails || 
-        !department1 || !department2 || !department3) {
-      setError('Tüm alanları doldurun');
+    if (!selectedDate || !incomingEmails || !sentEmails) {
+      setError('Tüm gerekli alanları doldurun');
       return;
     }
 
-    const totalEmailsNum = parseInt(totalEmails);
-    const distributedEmailsNum = parseInt(distributedEmails);
-
-    if (distributedEmailsNum > totalEmailsNum) {
-      setError('Dağıtılan mail sayısı toplam mail sayısından fazla olamaz');
-      return;
-    }
+    const validEmailRecipients = topEmailRecipients.filter(recipient => 
+      recipient.email.trim() !== '' && recipient.count.trim() !== ''
+    );
 
     try {
       setLoading(true);
@@ -61,9 +74,12 @@ const RPAForm: React.FC = () => {
       const reportData = {
         month: selectedDate.format('YYYY-MM'),
         year: selectedDate.year(),
-        totalEmails: totalEmailsNum,
-        distributedEmails: distributedEmailsNum,
-        topDepartments: [department1, department2, department3],
+        incomingEmails: parseInt(incomingEmails),
+        sentEmails: parseInt(sentEmails),
+        topEmailRecipients: validEmailRecipients.map(recipient => ({
+          email: recipient.email,
+          count: parseInt(recipient.count)
+        })),
         userId: currentUser?.uid,
         createdAt: new Date()
       };
@@ -72,11 +88,9 @@ const RPAForm: React.FC = () => {
       setMessage('RPA raporu başarıyla kaydedildi!');
       
       // Form temizle
-      setTotalEmails('');
-      setDistributedEmails('');
-      setDepartment1('');
-      setDepartment2('');
-      setDepartment3('');
+      setIncomingEmails('');
+      setSentEmails('');
+      setTopEmailRecipients([{email: '', count: ''}]);
       
       setTimeout(() => {
         navigate('/dashboard');
@@ -110,7 +124,7 @@ const RPAForm: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h5" gutterBottom>
-            RPA Mail Dağıtım Raporu
+            RPA Raporu (info@turksat.com.tr)
           </Typography>
           
           {message && (
@@ -143,61 +157,67 @@ const RPAForm: React.FC = () => {
               />
             </LocalizationProvider>
 
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Gelen Toplam Mail Sayısı"
-              type="number"
-              value={totalEmails}
-              onChange={(e) => setTotalEmails(e.target.value)}
-              inputProps={{ min: 0 }}
-            />
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Dağıtılan Mail Sayısı"
-              type="number"
-              value={distributedEmails}
-              onChange={(e) => setDistributedEmails(e.target.value)}
-              inputProps={{ min: 0 }}
-            />
+            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+              5.1. Gelen/İletilen Mailler
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 3 }}>
+              <TextField
+                required
+                label="Gelen Mail Sayısı"
+                type="number"
+                value={incomingEmails}
+                onChange={(e) => setIncomingEmails(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                label="İletilen Mail Sayısı"
+                type="number"
+                value={sentEmails}
+                onChange={(e) => setSentEmails(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+            </Box>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              En Çok Dağıtılan İlk 3 Birim
+              5.2. En Çok Başvuru/Talep Alan Mailler
             </Typography>
+            
+            {topEmailRecipients.map((recipient, index) => (
+              <Box key={`email-${index}`} sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+                <TextField
+                  fullWidth
+                  label={`E-mail Adresi ${index + 1}`}
+                  value={recipient.email}
+                  onChange={(e) => handleEmailRecipientChange(index, 'email', e.target.value)}
+                  placeholder="ornek@turksat.com.tr"
+                />
+                <TextField
+                  label="Mail Sayısı"
+                  type="number"
+                  value={recipient.count}
+                  onChange={(e) => handleEmailRecipientChange(index, 'count', e.target.value)}
+                  inputProps={{ min: 0 }}
+                  sx={{ width: '150px' }}
+                />
+                {topEmailRecipients.length > 1 && (
+                  <IconButton
+                    color="error"
+                    onClick={() => handleRemoveEmailRecipient(index)}
+                  >
+                    <Delete />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
 
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="1. En Çok Dağıtılan Birim"
-              value={department1}
-              onChange={(e) => setDepartment1(e.target.value)}
-              placeholder="Birim adını girin"
-            />
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="2. En Çok Dağıtılan Birim"
-              value={department2}
-              onChange={(e) => setDepartment2(e.target.value)}
-              placeholder="Birim adını girin"
-            />
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="3. En Çok Dağıtılan Birim"
-              value={department3}
-              onChange={(e) => setDepartment3(e.target.value)}
-              placeholder="Birim adını girin"
-            />
+            <Button
+              startIcon={<Add />}
+              onClick={handleAddEmailRecipient}
+              sx={{ mb: 3 }}
+            >
+              E-mail Ekle
+            </Button>
 
             <Button
               type="submit"

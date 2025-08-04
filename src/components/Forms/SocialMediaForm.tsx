@@ -32,8 +32,13 @@ const SocialMediaForm: React.FC = () => {
   const [platform, setPlatform] = useState('');
   const [followers, setFollowers] = useState('');
   const [posts, setPosts] = useState('');
+  const [likes, setLikes] = useState('');
+  const [comments, setComments] = useState('');
+  const [shares, setShares] = useState('');
+  const [retweets, setRetweets] = useState('');
+  const [views, setViews] = useState('');
+  const [newFollowers, setNewFollowers] = useState('');
   const [mostEngagedPost, setMostEngagedPost] = useState('');
-  const [leastEngagedPost, setLeastEngagedPost] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -44,8 +49,8 @@ const SocialMediaForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !platform || !followers || !posts || !mostEngagedPost || !leastEngagedPost) {
-      setError('Tüm alanları doldurun');
+    if (!selectedDate || !platform || !followers || !posts || !likes || !comments || !views || !newFollowers) {
+      setError('Tüm gerekli alanları doldurun');
       return;
     }
 
@@ -53,17 +58,30 @@ const SocialMediaForm: React.FC = () => {
       setLoading(true);
       setError('');
       
-      const reportData = {
+      const reportData: any = {
         month: selectedDate.format('YYYY-MM'),
         year: selectedDate.year(),
-        platform: platform as 'Instagram' | 'Youtube' | 'Facebook' | 'LinkedIn' | 'X',
+        platform: platform as 'X' | 'Instagram' | 'LinkedIn' | 'Facebook' | 'YouTube' | 'NextSosyal',
         followers: parseInt(followers),
         posts: parseInt(posts),
-        mostEngagedPost,
-        leastEngagedPost,
+        likes: parseInt(likes),
+        comments: parseInt(comments),
+        views: parseInt(views),
+        newFollowers: parseInt(newFollowers),
         userId: currentUser?.uid,
         createdAt: new Date()
       };
+
+      // Platform-specific fields
+      if (platform === 'X') {
+        reportData.retweets = parseInt(retweets);
+      } else if (platform === 'LinkedIn' || platform === 'Facebook') {
+        reportData.shares = parseInt(shares);
+      }
+
+      if (mostEngagedPost) {
+        reportData.mostEngagedPost = mostEngagedPost;
+      }
 
       await addDoc(collection(db, 'socialMediaReports'), reportData);
       setMessage('Sosyal medya raporu başarıyla kaydedildi!');
@@ -72,8 +90,13 @@ const SocialMediaForm: React.FC = () => {
       setPlatform('');
       setFollowers('');
       setPosts('');
+      setLikes('');
+      setComments('');
+      setShares('');
+      setRetweets('');
+      setViews('');
+      setNewFollowers('');
       setMostEngagedPost('');
-      setLeastEngagedPost('');
       
       setTimeout(() => {
         navigate('/dashboard');
@@ -147,11 +170,12 @@ const SocialMediaForm: React.FC = () => {
                 label="Sosyal Medya Platformu"
                 onChange={(e) => setPlatform(e.target.value)}
               >
+                <MenuItem value="X">X (Twitter)</MenuItem>
                 <MenuItem value="Instagram">Instagram</MenuItem>
-                <MenuItem value="Youtube">Youtube</MenuItem>
-                <MenuItem value="Facebook">Facebook</MenuItem>
                 <MenuItem value="LinkedIn">LinkedIn</MenuItem>
-                <MenuItem value="X">X</MenuItem>
+                <MenuItem value="Facebook">Facebook</MenuItem>
+                <MenuItem value="YouTube">YouTube</MenuItem>
+                <MenuItem value="NextSosyal">Next Sosyal</MenuItem>
               </Select>
             </FormControl>
 
@@ -166,34 +190,87 @@ const SocialMediaForm: React.FC = () => {
               inputProps={{ min: 0 }}
             />
 
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Gönderi Sayısı"
-              type="number"
-              value={posts}
-              onChange={(e) => setPosts(e.target.value)}
-              inputProps={{ min: 0 }}
-            />
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
+              <TextField
+                required
+                fullWidth
+                label="İleti Sayısı"
+                type="number"
+                value={posts}
+                onChange={(e) => setPosts(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                fullWidth
+                label="Beğeni Sayısı"
+                type="number"
+                value={likes}
+                onChange={(e) => setLikes(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
+              <TextField
+                required
+                fullWidth
+                label="Yorum Sayısı"
+                type="number"
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              {platform === 'X' ? (
+                <TextField
+                  fullWidth
+                  label="Retweet Sayısı"
+                  type="number"
+                  value={retweets}
+                  onChange={(e) => setRetweets(e.target.value)}
+                  inputProps={{ min: 0 }}
+                />
+              ) : (platform === 'LinkedIn' || platform === 'Facebook') ? (
+                <TextField
+                  fullWidth
+                  label="Paylaşım Sayısı"
+                  type="number"
+                  value={shares}
+                  onChange={(e) => setShares(e.target.value)}
+                  inputProps={{ min: 0 }}
+                />
+              ) : (
+                <Box />
+              )}
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
+              <TextField
+                required
+                fullWidth
+                label="Görüntülenme Sayısı"
+                type="number"
+                value={views}
+                onChange={(e) => setViews(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                required
+                fullWidth
+                label="Yeni Takipçi Sayısı"
+                type="number"
+                value={newFollowers}
+                onChange={(e) => setNewFollowers(e.target.value)}
+                inputProps={{ min: 0 }}
+              />
+            </Box>
 
             <TextField
               margin="normal"
-              required
               fullWidth
-              label="En Çok Etkileşim Alan Gönderi Linki"
+              label="En Çok Etkileşim Alan Gönderi Linki (İsteğe Bağlı)"
               value={mostEngagedPost}
               onChange={(e) => setMostEngagedPost(e.target.value)}
-              placeholder="https://..."
-            />
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="En Az Etkileşim Alan Gönderi Linki"
-              value={leastEngagedPost}
-              onChange={(e) => setLeastEngagedPost(e.target.value)}
               placeholder="https://..."
             />
 

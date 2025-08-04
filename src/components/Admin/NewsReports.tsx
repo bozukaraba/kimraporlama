@@ -19,22 +19,19 @@ import {
 } from '@mui/material';
 import { FileDownload } from '@mui/icons-material';
 import {
-  PieChart,
-  Pie,
-  Cell,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  LineChart,
+  Line
 } from 'recharts';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { NewsReport } from '../../types';
-
-const COLORS = ['#4CAF50', '#f44336', '#ff9800'];
 
 const NewsReports: React.FC = () => {
   const [reports, setReports] = useState<NewsReport[]>([]);
@@ -84,47 +81,49 @@ const NewsReports: React.FC = () => {
     return years.sort((a, b) => b - a);
   };
 
-  const getStatusData = () => {
-    const statusCount = filteredReports.reduce((acc, report) => {
-      acc[report.status] = (acc[report.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return [
-      { name: 'Olumlu', value: statusCount.olumlu || 0 },
-      { name: 'Olumsuz', value: statusCount.olumsuz || 0 },
-      { name: 'Kritik', value: statusCount.kritik || 0 }
-    ];
+  const getNewsCountData = () => {
+    return filteredReports.map(report => ({
+      month: report.month,
+      print: report.newsCount.print,
+      tv: report.newsCount.tv,
+      internet: report.newsCount.internet,
+      total: report.newsCount.print + report.newsCount.tv + report.newsCount.internet
+    })).sort((a, b) => a.month.localeCompare(b.month));
   };
 
-  const getMonthlyData = () => {
-    const monthlyCount = filteredReports.reduce((acc, report) => {
-      acc[report.month] = (acc[report.month] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(monthlyCount)
-      .map(([month, count]) => ({ month, count }))
-      .sort((a, b) => a.month.localeCompare(b.month));
+  const getAdEquivalentData = () => {
+    return filteredReports.map(report => ({
+      month: report.month,
+      print: report.adEquivalent.print,
+      tv: report.adEquivalent.tv,
+      internet: report.adEquivalent.internet,
+      total: report.adEquivalent.print + report.adEquivalent.tv + report.adEquivalent.internet
+    })).sort((a, b) => a.month.localeCompare(b.month));
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'olumlu': return 'success';
-      case 'olumsuz': return 'error';
-      case 'kritik': return 'warning';
-      default: return 'default';
-    }
+  const getTotalReachData = () => {
+    return filteredReports.map(report => ({
+      month: report.month,
+      print: report.totalReach.print,
+      tv: report.totalReach.tv,
+      internet: report.totalReach.internet,
+      total: report.totalReach.print + report.totalReach.tv + report.totalReach.internet
+    })).sort((a, b) => a.month.localeCompare(b.month));
   };
 
   const exportToCSV = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
-      'Durum': report.status,
-      'Özet': report.summary,
-      'Link': report.link,
-      'Kaynaklar': report.sources.join('; '),
+      'Basın Haber Sayısı': report.newsCount.print,
+      'TV Haber Sayısı': report.newsCount.tv,
+      'İnternet Haber Sayısı': report.newsCount.internet,
+      'Basın Reklam Eşdeğeri (TL)': report.adEquivalent.print,
+      'TV Reklam Eşdeğeri (TL)': report.adEquivalent.tv,
+      'İnternet Reklam Eşdeğeri (TL)': report.adEquivalent.internet,
+      'Basın Toplam Erişim': report.totalReach.print,
+      'TV Toplam Erişim': report.totalReach.tv,
+      'İnternet Toplam Erişim': report.totalReach.internet,
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -150,14 +149,15 @@ const NewsReports: React.FC = () => {
     );
   }
 
-  const statusData = getStatusData();
-  const monthlyData = getMonthlyData();
+  const newsCountData = getNewsCountData();
+  const adEquivalentData = getAdEquivalentData();
+  const totalReachData = getTotalReachData();
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" gutterBottom>
-          Basın Haberleri Raporları
+          Haber Raporları
         </Typography>
         
         <Box display="flex" gap={2}>
@@ -188,29 +188,22 @@ const NewsReports: React.FC = () => {
 
       {/* Grafik Görünümü */}
       {filteredReports.length > 0 && (
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 3, mb: 4 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3, mb: 4 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Haber Durumu Dağılımı
+                Medyada Yer Alma (Haber Sayısı)
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
+                <BarChart data={newsCountData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
                   <Tooltip />
-                </PieChart>
+                  <Bar dataKey="print" fill="#8884d8" name="Basın" />
+                  <Bar dataKey="tv" fill="#82ca9d" name="TV" />
+                  <Bar dataKey="internet" fill="#ffc658" name="İnternet" />
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -218,16 +211,37 @@ const NewsReports: React.FC = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Aylık Haber Sayısı
+                Reklam Eşdeğeri (TL)
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData}>
+                <LineChart data={adEquivalentData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8" name="Haber Sayısı" />
-                </BarChart>
+                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                  <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" />
+                  <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" />
+                  <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Toplam Erişim (Kişi)
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={totalReachData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                  <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" />
+                  <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" />
+                  <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -246,10 +260,9 @@ const NewsReports: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
-                  <TableCell><strong>Durum</strong></TableCell>
-                  <TableCell><strong>Özet</strong></TableCell>
-                  <TableCell><strong>Link</strong></TableCell>
-                  <TableCell><strong>Kaynaklar</strong></TableCell>
+                  <TableCell><strong>Haber Sayısı</strong></TableCell>
+                  <TableCell><strong>Reklam Eşdeğeri (TL)</strong></TableCell>
+                  <TableCell><strong>Toplam Erişim</strong></TableCell>
                   <TableCell><strong>Tarih</strong></TableCell>
                 </TableRow>
               </TableHead>
@@ -264,37 +277,34 @@ const NewsReports: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip 
-                        label={report.status.toUpperCase()}
-                        color={getStatusColor(report.status) as any}
-                        size="small"
-                      />
+                      <Box>
+                        <Typography variant="body2">Basın: {report.newsCount.print}</Typography>
+                        <Typography variant="body2">TV: {report.newsCount.tv}</Typography>
+                        <Typography variant="body2">İnternet: {report.newsCount.internet}</Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          Toplam: {report.newsCount.print + report.newsCount.tv + report.newsCount.internet}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: 300 }}>
-                        {report.summary}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2">Basın: {report.adEquivalent.print.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">TV: {report.adEquivalent.tv.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">İnternet: {report.adEquivalent.internet.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          Toplam: {(report.adEquivalent.print + report.adEquivalent.tv + report.adEquivalent.internet).toLocaleString('tr-TR')}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
-                      <a 
-                        href={report.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        style={{ color: '#1976d2', textDecoration: 'none' }}
-                      >
-                        Haberi Görüntüle
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      {report.sources.map((source, index) => (
-                        <Chip 
-                          key={index}
-                          label={source}
-                          size="small"
-                          variant="outlined"
-                          sx={{ mr: 0.5, mb: 0.5 }}
-                        />
-                      ))}
+                      <Box>
+                        <Typography variant="body2">Basın: {report.totalReach.print.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">TV: {report.totalReach.tv.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">İnternet: {report.totalReach.internet.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          Toplam: {(report.totalReach.print + report.totalReach.tv + report.totalReach.internet).toLocaleString('tr-TR')}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
@@ -323,4 +333,4 @@ const NewsReports: React.FC = () => {
   );
 };
 
-export default NewsReports; 
+export default NewsReports;

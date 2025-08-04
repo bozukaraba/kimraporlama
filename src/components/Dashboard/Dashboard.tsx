@@ -36,29 +36,36 @@ const Dashboard: React.FC = () => {
 
   const reportCards = [
     {
-      title: 'Sosyal Medya Raporu',
-      description: 'Aylık sosyal medya hesapları gelişimi',
-      icon: <Assessment sx={{ fontSize: 40 }} />,
-      path: '/sosyal-medya',
-      color: '#1976d2'
-    },
-    {
-      title: 'Basın Haberleri',
-      description: 'Kurum ile ilgili basında çıkan haberler',
+      title: 'Haber Raporu',
+      description: 'Medyada yer alma, reklam eşdeğeri, toplam erişim',
       icon: <Article sx={{ fontSize: 40 }} />,
       path: '/haberler',
       color: '#388e3c'
     },
     {
-      title: 'Web Sitesi Analitiği',
-      description: 'Kurum web sitesi raporu',
+      title: 'Sosyal Medya Raporu',
+      description: 'X, Instagram, LinkedIn, Facebook, YouTube, Next Sosyal',
+      icon: <Assessment sx={{ fontSize: 40 }} />,
+      path: '/sosyal-medya',
+      color: '#1976d2'
+    },
+    {
+      title: 'Web Sitesi ve İç İletişim Portalı',
+      description: 'Ziyaretçi sayısı, sayfa görüntüleme, popüler sayfalar',
       icon: <Analytics sx={{ fontSize: 40 }} />,
       path: '/web-analitik',
       color: '#f57c00'
     },
     {
-      title: 'RPA Rapor',
-      description: 'Mail dağıtım ve birim raporları',
+      title: 'CİMER',
+      description: 'Başvuru/cevaplama oranları, birimler, konular',
+      icon: <AutoAwesome sx={{ fontSize: 40 }} />,
+      path: '/cimer',
+      color: '#9c27b0'
+    },
+    {
+      title: 'RPA (info@turksat.com.tr)',
+      description: 'Gelen/iletilen mailler, en çok başvuru alan mailler',
       icon: <AutoAwesome sx={{ fontSize: 40 }} />,
       path: '/rpa-rapor',
       color: '#7b1fa2'
@@ -97,10 +104,10 @@ const Dashboard: React.FC = () => {
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
-          Rapor Paneli
+          Türksat Kurumsal İletişim Müdürlüğü
         </Typography>
         <Typography variant="subtitle1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-          Hoş geldiniz! Aşağıdaki raporlardan birini seçerek veri girişi yapabilirsiniz.
+          Aylık Faaliyet Raporları - Aşağıdaki raporlardan birini seçerek veri girişi yapabilirsiniz.
         </Typography>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 3 }}>

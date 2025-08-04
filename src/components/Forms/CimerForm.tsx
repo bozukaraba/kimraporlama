@@ -24,17 +24,16 @@ import { useAuth } from '../../contexts/AuthContext';
 
 dayjs.locale('tr');
 
-const WebAnalyticsForm: React.FC = () => {
+const CimerForm: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
-  // Ziyaretçi Sayısı
-  const [websiteVisitors, setWebsiteVisitors] = useState('');
-  const [portalVisitors, setPortalVisitors] = useState('');
-  // Sayfa Görüntüleme
-  const [websitePageViews, setWebsitePageViews] = useState('');
-  const [portalPageViews, setPortalPageViews] = useState('');
-  // En Popüler Sayfalar
-  const [websiteTopPages, setWebsiteTopPages] = useState<string[]>(['']);
-  const [portalTopPages, setPortalTopPages] = useState<string[]>(['']);
+  // Başvuru / Cevaplama Oranları
+  const [applications, setApplications] = useState('');
+  const [processedApplications, setProcessedApplications] = useState('');
+  // En Çok Başvuru Alan Birimler
+  const [topDepartments, setTopDepartments] = useState<Array<{name: string, rate: string}>>([{name: '', rate: ''}]);
+  // Başvuru Konusu
+  const [applicationTopics, setApplicationTopics] = useState<Array<{topic: string, count: string}>>([{topic: '', count: ''}]);
+  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -42,48 +41,48 @@ const WebAnalyticsForm: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const handleAddWebsitePage = () => {
-    setWebsiteTopPages([...websiteTopPages, '']);
+  const handleAddDepartment = () => {
+    setTopDepartments([...topDepartments, {name: '', rate: ''}]);
   };
 
-  const handleRemoveWebsitePage = (index: number) => {
-    if (websiteTopPages.length > 1) {
-      setWebsiteTopPages(websiteTopPages.filter((_, i) => i !== index));
+  const handleRemoveDepartment = (index: number) => {
+    if (topDepartments.length > 1) {
+      setTopDepartments(topDepartments.filter((_, i) => i !== index));
     }
   };
 
-  const handleWebsitePageChange = (index: number, value: string) => {
-    const newPages = [...websiteTopPages];
-    newPages[index] = value;
-    setWebsiteTopPages(newPages);
+  const handleDepartmentChange = (index: number, field: 'name' | 'rate', value: string) => {
+    const newDepartments = [...topDepartments];
+    newDepartments[index][field] = value;
+    setTopDepartments(newDepartments);
   };
 
-  const handleAddPortalPage = () => {
-    setPortalTopPages([...portalTopPages, '']);
+  const handleAddTopic = () => {
+    setApplicationTopics([...applicationTopics, {topic: '', count: ''}]);
   };
 
-  const handleRemovePortalPage = (index: number) => {
-    if (portalTopPages.length > 1) {
-      setPortalTopPages(portalTopPages.filter((_, i) => i !== index));
+  const handleRemoveTopic = (index: number) => {
+    if (applicationTopics.length > 1) {
+      setApplicationTopics(applicationTopics.filter((_, i) => i !== index));
     }
   };
 
-  const handlePortalPageChange = (index: number, value: string) => {
-    const newPages = [...portalTopPages];
-    newPages[index] = value;
-    setPortalTopPages(newPages);
+  const handleTopicChange = (index: number, field: 'topic' | 'count', value: string) => {
+    const newTopics = [...applicationTopics];
+    newTopics[index][field] = value;
+    setApplicationTopics(newTopics);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !websiteVisitors || !portalVisitors || !websitePageViews || !portalPageViews) {
+    if (!selectedDate || !applications || !processedApplications) {
       setError('Tüm gerekli alanları doldurun');
       return;
     }
 
-    const validWebsitePages = websiteTopPages.filter(page => page.trim() !== '');
-    const validPortalPages = portalTopPages.filter(page => page.trim() !== '');
+    const validDepartments = topDepartments.filter(dept => dept.name.trim() !== '' && dept.rate.trim() !== '');
+    const validTopics = applicationTopics.filter(topic => topic.topic.trim() !== '' && topic.count.trim() !== '');
 
     try {
       setLoading(true);
@@ -92,32 +91,28 @@ const WebAnalyticsForm: React.FC = () => {
       const reportData = {
         month: selectedDate.format('YYYY-MM'),
         year: selectedDate.year(),
-        visitors: {
-          website: parseInt(websiteVisitors),
-          portal: parseInt(portalVisitors)
-        },
-        pageViews: {
-          website: parseInt(websitePageViews),
-          portal: parseInt(portalPageViews)
-        },
-        topPages: {
-          website: validWebsitePages,
-          portal: validPortalPages
-        },
+        applications: parseInt(applications),
+        processedApplications: parseInt(processedApplications),
+        topDepartments: validDepartments.map(dept => ({
+          name: dept.name,
+          rate: parseFloat(dept.rate)
+        })),
+        applicationTopics: validTopics.map(topic => ({
+          topic: topic.topic,
+          count: parseInt(topic.count)
+        })),
         userId: currentUser?.uid,
         createdAt: new Date()
       };
 
-      await addDoc(collection(db, 'webAnalyticsReports'), reportData);
-      setMessage('Web analitik raporu başarıyla kaydedildi!');
+      await addDoc(collection(db, 'cimerReports'), reportData);
+      setMessage('CİMER raporu başarıyla kaydedildi!');
       
       // Form temizle
-      setWebsiteVisitors('');
-      setPortalVisitors('');
-      setWebsitePageViews('');
-      setPortalPageViews('');
-      setWebsiteTopPages(['']);
-      setPortalTopPages(['']);
+      setApplications('');
+      setProcessedApplications('');
+      setTopDepartments([{name: '', rate: ''}]);
+      setApplicationTopics([{topic: '', count: ''}]);
       
       setTimeout(() => {
         navigate('/dashboard');
@@ -143,7 +138,7 @@ const WebAnalyticsForm: React.FC = () => {
             Geri
           </Button>
           <Typography variant="h6">
-            Web Sitesi ve İç İletişim Portalı
+            CİMER Raporu
           </Typography>
         </Toolbar>
       </AppBar>
@@ -151,7 +146,7 @@ const WebAnalyticsForm: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h5" gutterBottom>
-            Web Sitesi ve İç İletişim Portalı Raporu
+            CİMER Raporu
           </Typography>
           
           {message && (
@@ -185,66 +180,51 @@ const WebAnalyticsForm: React.FC = () => {
             </LocalizationProvider>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              3.1. Ziyaretçi Sayısı
+              4.1. Başvuru / Cevaplama Oranları
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 3 }}>
               <TextField
                 required
-                label="Web Sitesi"
+                label="Başvuru Sayısı"
                 type="number"
-                value={websiteVisitors}
-                onChange={(e) => setWebsiteVisitors(e.target.value)}
+                value={applications}
+                onChange={(e) => setApplications(e.target.value)}
                 inputProps={{ min: 0 }}
               />
               <TextField
                 required
-                label="Portal"
+                label="İşlem Yapılan Başvurular"
                 type="number"
-                value={portalVisitors}
-                onChange={(e) => setPortalVisitors(e.target.value)}
+                value={processedApplications}
+                onChange={(e) => setProcessedApplications(e.target.value)}
                 inputProps={{ min: 0 }}
               />
             </Box>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              3.2. Sayfa Görüntüleme
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 3 }}>
-              <TextField
-                required
-                label="Web Sitesi"
-                type="number"
-                value={websitePageViews}
-                onChange={(e) => setWebsitePageViews(e.target.value)}
-                inputProps={{ min: 0 }}
-              />
-              <TextField
-                required
-                label="Portal"
-                type="number"
-                value={portalPageViews}
-                onChange={(e) => setPortalPageViews(e.target.value)}
-                inputProps={{ min: 0 }}
-              />
-            </Box>
-
-            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              3.3. En Popüler Sayfalar - Web Sitesi
+              4.2. En Çok Başvuru Alan Birimler
             </Typography>
             
-            {websiteTopPages.map((page, index) => (
-              <Box key={`website-${index}`} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            {topDepartments.map((dept, index) => (
+              <Box key={`dept-${index}`} sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
                 <TextField
                   fullWidth
-                  label={`Web Sitesi Sayfa ${index + 1}`}
-                  value={page}
-                  onChange={(e) => handleWebsitePageChange(index, e.target.value)}
-                  sx={{ mr: 1 }}
+                  label={`Birim Adı ${index + 1}`}
+                  value={dept.name}
+                  onChange={(e) => handleDepartmentChange(index, 'name', e.target.value)}
                 />
-                {websiteTopPages.length > 1 && (
+                <TextField
+                  label="Başvuru Oranı (%)"
+                  type="number"
+                  value={dept.rate}
+                  onChange={(e) => handleDepartmentChange(index, 'rate', e.target.value)}
+                  inputProps={{ min: 0, max: 100, step: 0.01 }}
+                  sx={{ width: '150px' }}
+                />
+                {topDepartments.length > 1 && (
                   <IconButton
                     color="error"
-                    onClick={() => handleRemoveWebsitePage(index)}
+                    onClick={() => handleRemoveDepartment(index)}
                   >
                     <Delete />
                   </IconButton>
@@ -254,29 +234,36 @@ const WebAnalyticsForm: React.FC = () => {
 
             <Button
               startIcon={<Add />}
-              onClick={handleAddWebsitePage}
+              onClick={handleAddDepartment}
               sx={{ mb: 3 }}
             >
-              Web Sitesi Sayfa Ekle
+              Birim Ekle
             </Button>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              3.3. En Popüler Sayfalar - Portal
+              4.3. Başvuru Konusu
             </Typography>
             
-            {portalTopPages.map((page, index) => (
-              <Box key={`portal-${index}`} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            {applicationTopics.map((topic, index) => (
+              <Box key={`topic-${index}`} sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
                 <TextField
                   fullWidth
-                  label={`Portal Sayfa ${index + 1}`}
-                  value={page}
-                  onChange={(e) => handlePortalPageChange(index, e.target.value)}
-                  sx={{ mr: 1 }}
+                  label={`Konu ${index + 1}`}
+                  value={topic.topic}
+                  onChange={(e) => handleTopicChange(index, 'topic', e.target.value)}
                 />
-                {portalTopPages.length > 1 && (
+                <TextField
+                  label="Sayı"
+                  type="number"
+                  value={topic.count}
+                  onChange={(e) => handleTopicChange(index, 'count', e.target.value)}
+                  inputProps={{ min: 0 }}
+                  sx={{ width: '100px' }}
+                />
+                {applicationTopics.length > 1 && (
                   <IconButton
                     color="error"
-                    onClick={() => handleRemovePortalPage(index)}
+                    onClick={() => handleRemoveTopic(index)}
                   >
                     <Delete />
                   </IconButton>
@@ -286,10 +273,10 @@ const WebAnalyticsForm: React.FC = () => {
 
             <Button
               startIcon={<Add />}
-              onClick={handleAddPortalPage}
+              onClick={handleAddTopic}
               sx={{ mb: 3 }}
             >
-              Portal Sayfa Ekle
+              Konu Ekle
             </Button>
 
             <Button
@@ -308,4 +295,4 @@ const WebAnalyticsForm: React.FC = () => {
   );
 };
 
-export default WebAnalyticsForm;
+export default CimerForm;

@@ -6,52 +6,111 @@ export interface User {
   createdAt: Date;
 }
 
-export interface SocialMediaReport {
-  id?: string;
-  month: string;
-  year: number;
-  platform: 'Instagram' | 'Youtube' | 'Facebook' | 'LinkedIn' | 'X';
-  followers: number;
-  posts: number;
-  mostEngagedPost: string;
-  leastEngagedPost: string;
-  userId: string;
-  createdAt: Date;
-}
-
+// 1. Haber Raporu
 export interface NewsReport {
   id?: string;
   month: string;
   year: number;
-  status: 'olumlu' | 'olumsuz' | 'kritik';
-  summary: string;
-  link: string;
-  sources: string[];
+  // Medyada Yer Alma (Haber Sayısı)
+  newsCount: {
+    print: number;        // Basın
+    tv: number;          // TV
+    internet: number;    // İnternet Haber Sitesi
+  };
+  // Reklam Eşdeğeri (TL)
+  adEquivalent: {
+    print: number;
+    tv: number;
+    internet: number;
+  };
+  // Toplam Erişim (Kişi)
+  totalReach: {
+    print: number;
+    tv: number;
+    internet: number;
+  };
   userId: string;
   createdAt: Date;
 }
 
+// 2. Sosyal Medya Raporu
+export interface SocialMediaReport {
+  id?: string;
+  month: string;
+  year: number;
+  platform: 'X' | 'Instagram' | 'LinkedIn' | 'Facebook' | 'YouTube' | 'NextSosyal';
+  followers: number;
+  posts: number;
+  likes: number;
+  comments: number;
+  shares?: number;      // LinkedIn, Facebook için
+  retweets?: number;    // X için
+  views: number;
+  newFollowers: number;
+  mostEngagedPost?: string;
+  userId: string;
+  createdAt: Date;
+}
+
+// 3. Web Sitesi ve İç İletişim Portalı
 export interface WebAnalyticsReport {
   id?: string;
   month: string;
   year: number;
-  visitors: number;
-  pageViews: number;
-  bounceRate: number;
-  avgSessionDuration: number;
-  conversions: number;
-  topPages: string[];
+  // Ziyaretçi Sayısı
+  visitors: {
+    website: number;
+    portal: number;
+  };
+  // Sayfa Görüntüleme
+  pageViews: {
+    website: number;
+    portal: number;
+  };
+  // En Popüler Sayfalar
+  topPages: {
+    website: string[];
+    portal: string[];
+  };
   userId: string;
   createdAt: Date;
 }
 
+// 4. CİMER Raporu
+export interface CimerReport {
+  id?: string;
+  month: string;
+  year: number;
+  // Başvuru / Cevaplama Oranları
+  applications: number;
+  processedApplications: number;
+  // En Çok Başvuru Alan Birimler
+  topDepartments: Array<{
+    name: string;
+    rate: number;
+  }>;
+  // Başvuru Konusu
+  applicationTopics: Array<{
+    topic: string;
+    count: number;
+  }>;
+  userId: string;
+  createdAt: Date;
+}
+
+// 5. RPA Raporu
 export interface RPAReport {
   id?: string;
   month: string;
   year: number;
-  totalEmails: number;
-  distributedEmails: number;
-  topDepartments: string[];
+  // Gelen/İletilen Mailler
+  incomingEmails: number;
+  sentEmails: number;
+  // En Çok Başvuru/Talep Alan Mailler
+  topEmailRecipients: Array<{
+    email: string;
+    count: number;
+  }>;
   userId: string;
   createdAt: Date;
 } 

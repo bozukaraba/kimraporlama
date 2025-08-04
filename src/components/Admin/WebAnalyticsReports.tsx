@@ -19,18 +19,14 @@ import {
 } from '@mui/material';
 import { FileDownload } from '@mui/icons-material';
 import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar
+  ResponsiveContainer
 } from 'recharts';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -89,11 +85,10 @@ const WebAnalyticsReports: React.FC = () => {
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        visitors: report.visitors,
-        pageViews: report.pageViews,
-        bounceRate: report.bounceRate,
-        avgSessionDuration: report.avgSessionDuration,
-        conversions: report.conversions
+        websiteVisitors: report.visitors.website,
+        portalVisitors: report.visitors.portal,
+        websitePageViews: report.pageViews.website,
+        portalPageViews: report.pageViews.portal
       }));
   };
 
@@ -101,12 +96,12 @@ const WebAnalyticsReports: React.FC = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
-      'Ziyaretçi Sayısı': report.visitors,
-      'Sayfa Görüntüleme': report.pageViews,
-      'Hemen Çıkma Oranı (%)': report.bounceRate,
-      'Ortalama Oturum Süresi (dakika)': report.avgSessionDuration,
-      'Dönüşüm': report.conversions,
-      'En Popüler Sayfalar': report.topPages.join('; '),
+      'Web Sitesi Ziyaretçi': report.visitors.website,
+      'Portal Ziyaretçi': report.visitors.portal,
+      'Web Sitesi Sayfa Görüntüleme': report.pageViews.website,
+      'Portal Sayfa Görüntüleme': report.pageViews.portal,
+      'Web Sitesi Popüler Sayfalar': report.topPages.website.join('; '),
+      'Portal Popüler Sayfalar': report.topPages.portal.join('; '),
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -138,7 +133,7 @@ const WebAnalyticsReports: React.FC = () => {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" gutterBottom>
-          Web Sitesi Analitik Raporları
+          Web Sitesi ve İç İletişim Portalı Raporları
         </Typography>
         
         <Box display="flex" gap={2}>
@@ -169,91 +164,40 @@ const WebAnalyticsReports: React.FC = () => {
 
       {/* Grafik Görünümü */}
       {chartData.length > 0 && (
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 3, mb: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Ziyaretçi ve Sayfa Görüntüleme Trendi
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Area 
-                      type="monotone" 
-                      dataKey="visitors" 
-                      stackId="1"
-                      stroke="#8884d8" 
-                      fill="#8884d8"
-                      name="Ziyaretçi Sayısı"
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="pageViews" 
-                      stackId="2"
-                      stroke="#82ca9d" 
-                      fill="#82ca9d"
-                      name="Sayfa Görüntüleme"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Hemen Çıkma Oranı (%)
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="bounceRate" 
-                      stroke="#ff7300" 
-                      name="Hemen Çıkma Oranı (%)"
-                      strokeWidth={3}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Box>
-
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 3, mb: 4 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Dönüşüm ve Oturum Süresi
+                Ziyaretçi Sayısı Karşılaştırması
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
                   <Legend />
-                  <Bar 
-                    yAxisId="left"
-                    dataKey="conversions" 
-                    fill="#8884d8" 
-                    name="Dönüşüm"
-                  />
-                  <Bar 
-                    yAxisId="right"
-                    dataKey="avgSessionDuration" 
-                    fill="#82ca9d" 
-                    name="Ortalama Oturum Süresi (dk)"
-                  />
+                  <Bar dataKey="websiteVisitors" fill="#8884d8" name="Web Sitesi" />
+                  <Bar dataKey="portalVisitors" fill="#82ca9d" name="Portal" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Sayfa Görüntüleme Karşılaştırması
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                  <Legend />
+                  <Bar dataKey="websitePageViews" fill="#ffc658" name="Web Sitesi" />
+                  <Bar dataKey="portalPageViews" fill="#ff7300" name="Portal" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -265,7 +209,7 @@ const WebAnalyticsReports: React.FC = () => {
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Detaylı Analitik Listesi ({filteredReports.length} kayıt)
+            Detaylı Web Analitik Listesi ({filteredReports.length} kayıt)
           </Typography>
           
           <TableContainer component={Paper} sx={{ mt: 2 }}>
@@ -275,9 +219,6 @@ const WebAnalyticsReports: React.FC = () => {
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
                   <TableCell align="right"><strong>Ziyaretçi</strong></TableCell>
                   <TableCell align="right"><strong>Sayfa Görüntüleme</strong></TableCell>
-                  <TableCell align="right"><strong>Çıkma Oranı (%)</strong></TableCell>
-                  <TableCell align="right"><strong>Oturum Süresi (dk)</strong></TableCell>
-                  <TableCell align="right"><strong>Dönüşüm</strong></TableCell>
                   <TableCell><strong>En Popüler Sayfalar</strong></TableCell>
                   <TableCell><strong>Tarih</strong></TableCell>
                 </TableRow>
@@ -293,40 +234,47 @@ const WebAnalyticsReports: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2" fontWeight="bold" color="primary">
-                        {report.visitors.toLocaleString('tr-TR')}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2">Web: {report.visitors.website.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Portal: {report.visitors.portal.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2" fontWeight="bold" color="primary">
+                          Toplam: {(report.visitors.website + report.visitors.portal).toLocaleString('tr-TR')}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2" fontWeight="bold" color="success.main">
-                        {report.pageViews.toLocaleString('tr-TR')}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Chip 
-                        label={`${report.bounceRate}%`}
-                        color={report.bounceRate > 70 ? 'error' : report.bounceRate > 50 ? 'warning' : 'success'}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2">
-                        {report.avgSessionDuration} dk
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" fontWeight="bold" color="secondary">
-                        {report.conversions}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2">Web: {report.pageViews.website.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Portal: {report.pageViews.portal.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2" fontWeight="bold" color="success.main">
+                          Toplam: {(report.pageViews.website + report.pageViews.portal).toLocaleString('tr-TR')}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
-                      {report.topPages.map((page, index) => (
-                        <Box key={index} sx={{ mb: 0.5 }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {index + 1}. {page}
-                          </Typography>
-                        </Box>
-                      ))}
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">Web Sitesi:</Typography>
+                        {report.topPages.website.slice(0, 3).map((page, index) => (
+                          <Chip 
+                            key={index}
+                            label={`${index + 1}. ${page.length > 30 ? page.substring(0, 30) + '...' : page}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ mr: 0.5, mb: 0.5 }}
+                          />
+                        ))}
+                        <Typography variant="body2" fontWeight="bold" sx={{ mt: 1 }}>Portal:</Typography>
+                        {report.topPages.portal.slice(0, 3).map((page, index) => (
+                          <Chip 
+                            key={index}
+                            label={`${index + 1}. ${page.length > 30 ? page.substring(0, 30) + '...' : page}`}
+                            size="small"
+                            variant="outlined"
+                            color="secondary"
+                            sx={{ mr: 0.5, mb: 0.5 }}
+                          />
+                        ))}
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
@@ -355,4 +303,4 @@ const WebAnalyticsReports: React.FC = () => {
   );
 };
 
-export default WebAnalyticsReports; 
+export default WebAnalyticsReports;
