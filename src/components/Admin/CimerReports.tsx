@@ -35,7 +35,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { CimerReport } from '../../types';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#A282CA', '#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9'];
 
 const CimerReports: React.FC = () => {
   const [reports, setReports] = useState<CimerReport[]>([]);
