@@ -9,7 +9,8 @@ import {
   Box,
   AppBar,
   Toolbar,
-  Alert
+  Alert,
+  MenuItem
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -25,6 +26,7 @@ dayjs.locale('tr');
 
 const NewsForm: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [period, setPeriod] = useState('');
   // Medyada Yer Alma (Haber Sayısı)
   const [printNews, setPrintNews] = useState('');
   const [tvNews, setTvNews] = useState('');
@@ -50,7 +52,7 @@ const NewsForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !printNews || !tvNews || !internetNews || 
+    if (!selectedDate || !period || !printNews || !tvNews || !internetNews || 
         !printAdEquiv || !tvAdEquiv || !internetAdEquiv ||
         !printReach || !tvReach || !internetReach) {
       setError('Tüm alanları doldurun');
@@ -64,6 +66,7 @@ const NewsForm: React.FC = () => {
       const reportData = {
         month: selectedDate.format('YYYY-MM'),
         year: selectedDate.year(),
+        period: period as 'ahmet-hamdi-atalay' | 'turksat',
         newsCount: {
           print: parseInt(printNews),
           tv: parseInt(tvNews),
@@ -87,6 +90,7 @@ const NewsForm: React.FC = () => {
       setMessage('Haber raporu başarıyla kaydedildi!');
       
       // Form temizle
+      setPeriod('');
       setPrintNews('');
       setTvNews('');
       setInternetNews('');
@@ -161,6 +165,19 @@ const NewsForm: React.FC = () => {
                 }}
               />
             </LocalizationProvider>
+
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              select
+              label="Dönem"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+            >
+              <MenuItem value="ahmet-hamdi-atalay">Ahmet Hamdi Atalay</MenuItem>
+              <MenuItem value="turksat">Türksat</MenuItem>
+            </TextField>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
               1.1. Medyada Yer Alma (Haber Sayısı)

@@ -82,13 +82,23 @@ const NewsReports: React.FC = () => {
   };
 
   const getNewsCountData = () => {
-    return filteredReports.map(report => ({
-      month: report.month,
-      print: report.newsCount.print,
-      tv: report.newsCount.tv,
-      internet: report.newsCount.internet,
-      total: report.newsCount.print + report.newsCount.tv + report.newsCount.internet
-    })).sort((a, b) => a.month.localeCompare(b.month));
+    const periodData: { [key: string]: any } = {};
+    
+    filteredReports.forEach(report => {
+      const periodLabel = report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat';
+      const key = `${report.month}-${periodLabel}`;
+      
+      periodData[key] = {
+        month: report.month,
+        period: periodLabel,
+        print: report.newsCount.print,
+        tv: report.newsCount.tv,
+        internet: report.newsCount.internet,
+        total: report.newsCount.print + report.newsCount.tv + report.newsCount.internet
+      };
+    });
+    
+    return Object.values(periodData).sort((a: any, b: any) => a.month.localeCompare(b.month));
   };
 
   const getAdEquivalentData = () => {
@@ -115,6 +125,7 @@ const NewsReports: React.FC = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
+      'Dönem': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
       'Basın Haber Sayısı': report.newsCount.print,
       'TV Haber Sayısı': report.newsCount.tv,
       'İnternet Haber Sayısı': report.newsCount.internet,
@@ -260,6 +271,7 @@ const NewsReports: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
+                  <TableCell><strong>Dönem</strong></TableCell>
                   <TableCell><strong>Haber Sayısı</strong></TableCell>
                   <TableCell><strong>Reklam Eşdeğeri (TL)</strong></TableCell>
                   <TableCell><strong>Toplam Erişim</strong></TableCell>
@@ -274,6 +286,14 @@ const NewsReports: React.FC = () => {
                         label={`${report.month}`}
                         color="primary"
                         size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat'}
+                        color={report.period === 'ahmet-hamdi-atalay' ? 'secondary' : 'success'}
+                        size="small"
+                        variant="outlined"
                       />
                     </TableCell>
                     <TableCell>

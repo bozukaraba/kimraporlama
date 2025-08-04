@@ -11,6 +11,7 @@ export interface NewsReport {
   id?: string;
   month: string;
   year: number;
+  period: 'ahmet-hamdi-atalay' | 'turksat'; // Dönem seçimi
   // Medyada Yer Alma (Haber Sayısı)
   newsCount: {
     print: number;        // Basın
