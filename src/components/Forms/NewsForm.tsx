@@ -171,7 +171,7 @@ const NewsForm: React.FC = () => {
               required
               fullWidth
               select
-              label="Dönem"
+              label="İçerik"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
             >

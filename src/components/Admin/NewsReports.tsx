@@ -125,7 +125,7 @@ const NewsReports: React.FC = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
-      'Dönem': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
+      'İçerik': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
       'Basın Haber Sayısı': report.newsCount.print,
       'TV Haber Sayısı': report.newsCount.tv,
       'İnternet Haber Sayısı': report.newsCount.internet,
@@ -271,7 +271,7 @@ const NewsReports: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Ay/Yıl</strong></TableCell>
-                  <TableCell><strong>Dönem</strong></TableCell>
+                  <TableCell><strong>İçerik</strong></TableCell>
                   <TableCell><strong>Haber Sayısı</strong></TableCell>
                   <TableCell><strong>Reklam Eşdeğeri (TL)</strong></TableCell>
                   <TableCell><strong>Toplam Erişim</strong></TableCell>
