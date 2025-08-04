@@ -32,6 +32,7 @@ interface ReportSummary {
   socialMedia: number;
   news: number;
   webAnalytics: number;
+  cimer: number;
   rpa: number;
 }
 
@@ -40,16 +41,18 @@ interface MonthlyData {
   socialMedia: number;
   news: number;
   webAnalytics: number;
+  cimer: number;
   rpa: number;
 }
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#9c27b0', '#ff7300'];
 
 const ReportsOverview: React.FC = () => {
   const [reportSummary, setReportSummary] = useState<ReportSummary>({
     socialMedia: 0,
     news: 0,
     webAnalytics: 0,
+    cimer: 0,
     rpa: 0
   });
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -65,10 +68,11 @@ const ReportsOverview: React.FC = () => {
       setLoading(true);
       
       // Her rapor türü için sayıları al
-      const [socialMediaSnapshot, newsSnapshot, webAnalyticsSnapshot, rpaSnapshot] = await Promise.all([
+      const [socialMediaSnapshot, newsSnapshot, webAnalyticsSnapshot, cimerSnapshot, rpaSnapshot] = await Promise.all([
         getDocs(collection(db, 'socialMediaReports')),
         getDocs(collection(db, 'newsReports')),
         getDocs(collection(db, 'webAnalyticsReports')),
+        getDocs(collection(db, 'cimerReports')),
         getDocs(collection(db, 'rpaReports'))
       ]);
 
@@ -76,6 +80,7 @@ const ReportsOverview: React.FC = () => {
         socialMedia: socialMediaSnapshot.size,
         news: newsSnapshot.size,
         webAnalytics: webAnalyticsSnapshot.size,
+        cimer: cimerSnapshot.size,
         rpa: rpaSnapshot.size
       };
 
@@ -93,6 +98,7 @@ const ReportsOverview: React.FC = () => {
             socialMedia: 0,
             news: 0,
             webAnalytics: 0,
+            cimer: 0,
             rpa: 0
           };
         }
@@ -108,6 +114,7 @@ const ReportsOverview: React.FC = () => {
             socialMedia: 0,
             news: 0,
             webAnalytics: 0,
+            cimer: 0,
             rpa: 0
           };
         }
@@ -123,6 +130,7 @@ const ReportsOverview: React.FC = () => {
             socialMedia: 0,
             news: 0,
             webAnalytics: 0,
+            cimer: 0,
             rpa: 0
           };
         }
@@ -138,10 +146,27 @@ const ReportsOverview: React.FC = () => {
             socialMedia: 0,
             news: 0,
             webAnalytics: 0,
+            cimer: 0,
             rpa: 0
           };
         }
         monthlyStats[monthKey].rpa++;
+      });
+
+      cimerSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        const monthKey = data.month;
+        if (!monthlyStats[monthKey]) {
+          monthlyStats[monthKey] = {
+            month: monthKey,
+            socialMedia: 0,
+            news: 0,
+            webAnalytics: 0,
+            cimer: 0,
+            rpa: 0
+          };
+        }
+        monthlyStats[monthKey].cimer++;
       });
 
       const sortedMonthlyData = Object.values(monthlyStats)
@@ -167,10 +192,11 @@ const ReportsOverview: React.FC = () => {
     { name: 'Sosyal Medya', value: reportSummary.socialMedia },
     { name: 'Haberler', value: reportSummary.news },
     { name: 'Web Analitik', value: reportSummary.webAnalytics },
+    { name: 'CİMER', value: reportSummary.cimer },
     { name: 'RPA Rapor', value: reportSummary.rpa }
   ];
 
-  const totalReports = reportSummary.socialMedia + reportSummary.news + reportSummary.webAnalytics + reportSummary.rpa;
+  const totalReports = reportSummary.socialMedia + reportSummary.news + reportSummary.webAnalytics + reportSummary.cimer + reportSummary.rpa;
 
   if (loading) {
     return (
@@ -241,6 +267,22 @@ const ReportsOverview: React.FC = () => {
         </Card>
 
         <Card sx={{ background: 'linear-gradient(45deg, #9C27B0 30%, #E91E63 90%)' }}>
+          <CardContent>
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box>
+                <Typography color="white" variant="h4">
+                  {reportSummary.cimer}
+                </Typography>
+                <Typography color="white" variant="body2">
+                  CİMER Raporu
+                </Typography>
+              </Box>
+              <Assessment sx={{ color: 'white', fontSize: 40 }} />
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ background: 'linear-gradient(45deg, #FF5722 30%, #FF9800 90%)' }}>
           <CardContent>
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Box>
@@ -319,7 +361,8 @@ const ReportsOverview: React.FC = () => {
                 <Line type="monotone" dataKey="socialMedia" stroke="#2196F3" name="Sosyal Medya" />
                 <Line type="monotone" dataKey="news" stroke="#4CAF50" name="Haberler" />
                 <Line type="monotone" dataKey="webAnalytics" stroke="#FF9800" name="Web Analitik" />
-                <Line type="monotone" dataKey="rpa" stroke="#9C27B0" name="RPA" />
+                <Line type="monotone" dataKey="cimer" stroke="#9C27B0" name="CİMER" />
+                <Line type="monotone" dataKey="rpa" stroke="#FF5722" name="RPA" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
