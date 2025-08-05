@@ -20,9 +20,14 @@ import {
   Select,
   Menu,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
-import { FileDownload, PictureAsPdf } from '@mui/icons-material';
+import { FileDownload, PictureAsPdf, Edit } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
@@ -59,6 +64,17 @@ const CimerReports: React.FC = () => {
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [exportLoading, setExportLoading] = useState<string>('');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  
+  // Edit Modal State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<CimerReport | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    applications: '',
+    processedApplications: '',
+    averageProcessingTime: '',
+    topDepartments: [] as any[],
+    applicationTopics: [] as any[]
+  });
 
   useEffect(() => {
     fetchReports();
@@ -174,6 +190,61 @@ const CimerReports: React.FC = () => {
       setError(`${format.toUpperCase()} oluşturma hatası: ${(error as Error).message}`);
     } finally {
       setExportLoading('');
+    }
+  };
+
+  // Edit Functions
+  const handleEditReport = (report: CimerReport) => {
+    setEditingReport(report);
+    setEditFormData({
+      applications: String(report.applications || 0),
+      processedApplications: String(report.processedApplications || 0),
+      averageProcessingTime: String(report.averageProcessingTime || 0),
+      topDepartments: report.topDepartments || [],
+      applicationTopics: report.applicationTopics || []
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setEditingReport(null);
+    setEditFormData({
+      applications: '',
+      processedApplications: '',
+      averageProcessingTime: '',
+      topDepartments: [],
+      applicationTopics: []
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingReport) return;
+
+    try {
+      setLoading(true);
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../firebase/config');
+
+      const reportRef = doc(db, 'cimerReports', editingReport.id);
+      await updateDoc(reportRef, {
+        applications: parseInt(editFormData.applications) || 0,
+        processedApplications: parseInt(editFormData.processedApplications) || 0,
+        averageProcessingTime: parseFloat(editFormData.averageProcessingTime) || 0,
+        topDepartments: editFormData.topDepartments,
+        applicationTopics: editFormData.applicationTopics,
+        updatedAt: new Date()
+      });
+
+      // Refresh reports
+      await fetchReports();
+      handleCloseEditModal();
+      alert('Rapor başarıyla güncellendi!');
+    } catch (error) {
+      console.error('Update error:', error);
+      alert('Rapor güncellenirken hata oluştu!');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -380,6 +451,7 @@ const CimerReports: React.FC = () => {
                   <TableCell><strong>En Çok Başvuru Alan Birimler</strong></TableCell>
                   <TableCell><strong>Başvuru Konuları</strong></TableCell>
                   <TableCell><strong>Tarih</strong></TableCell>
+                  <TableCell align="center"><strong>Aksiyonlar</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -455,6 +527,16 @@ const CimerReports: React.FC = () => {
                           {report.createdAt?.toLocaleDateString('tr-TR')}
                         </Typography>
                       </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditReport(report)}
+                          size="small"
+                          title="Raporu Düzenle"
+                        >
+                          <Edit />
+                        </IconButton>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -474,6 +556,45 @@ const CimerReports: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      <Dialog open={editModalOpen} onClose={handleCloseEditModal} maxWidth="md" fullWidth>
+        <DialogTitle>CIMER Raporu Düzenle</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+            <TextField
+              label="Başvuru Sayısı"
+              type="number"
+              value={editFormData.applications}
+              onChange={(e) => setEditFormData({...editFormData, applications: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="İşlenen Başvuru Sayısı"
+              type="number"
+              value={editFormData.processedApplications}
+              onChange={(e) => setEditFormData({...editFormData, processedApplications: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Ortalama İşlem Süresi (Gün)"
+              type="number"
+              value={editFormData.averageProcessingTime}
+              onChange={(e) => setEditFormData({...editFormData, averageProcessingTime: e.target.value})}
+              fullWidth
+            />
+            <Typography variant="body2" color="text.secondary">
+              Not: Departman ve başvuru konuları detaylı düzenlemesi için formu kullanın.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditModal}>İptal</Button>
+          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+            Kaydet
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

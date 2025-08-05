@@ -18,9 +18,13 @@ import {
   MenuItem,
   Menu,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
-import { FileDownload, PictureAsPdf } from '@mui/icons-material';
+import { FileDownload, PictureAsPdf, Edit } from '@mui/icons-material';
 import {
   LineChart,
   Line,
@@ -47,6 +51,20 @@ const SocialMediaReports: React.FC = () => {
   const [platformFilter, setPlatformFilter] = useState<string>('all');
   const [exportLoading, setExportLoading] = useState<string>('');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  
+  // Edit Modal State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    platform: '',
+    followers: '',
+    posts: '',
+    likes: '',
+    comments: '',
+    views: '',
+    newFollowers: '',
+    mostEngagedPost: ''
+  });
 
   useEffect(() => {
     fetchReports();
@@ -143,6 +161,70 @@ const SocialMediaReports: React.FC = () => {
       setError(`${format.toUpperCase()} oluşturma hatası: ${(error as Error).message}`);
     } finally {
       setExportLoading('');
+    }
+  };
+
+  // Edit Functions
+  const handleEditReport = (report: any) => {
+    setEditingReport(report);
+    setEditFormData({
+      platform: report.platform || '',
+      followers: String(report.followers || 0),
+      posts: String(report.posts || 0),
+      likes: String(report.likes || 0),
+      comments: String(report.comments || 0),
+      views: String(report.views || 0),
+      newFollowers: String(report.newFollowers || 0),
+      mostEngagedPost: report.mostEngagedPost || ''
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setEditingReport(null);
+    setEditFormData({
+      platform: '',
+      followers: '',
+      posts: '',
+      likes: '',
+      comments: '',
+      views: '',
+      newFollowers: '',
+      mostEngagedPost: ''
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingReport) return;
+
+    try {
+      setLoading(true);
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../firebase/config');
+
+      const reportRef = doc(db, 'socialMediaReports', editingReport.id);
+      await updateDoc(reportRef, {
+        platform: editFormData.platform,
+        followers: parseInt(editFormData.followers) || 0,
+        posts: parseInt(editFormData.posts) || 0,
+        likes: parseInt(editFormData.likes) || 0,
+        comments: parseInt(editFormData.comments) || 0,
+        views: parseInt(editFormData.views) || 0,
+        newFollowers: parseInt(editFormData.newFollowers) || 0,
+        mostEngagedPost: editFormData.mostEngagedPost,
+        updatedAt: new Date()
+      });
+
+      // Refresh reports
+      await fetchReports();
+      handleCloseEditModal();
+      alert('Rapor başarıyla güncellendi!');
+    } catch (error) {
+      console.error('Update error:', error);
+      alert('Rapor güncellenirken hata oluştu!');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -337,6 +419,7 @@ const SocialMediaReports: React.FC = () => {
                   <TableCell align="right"><strong>Yeni Takipçi</strong></TableCell>
                   <TableCell><strong>En Çok Etkileşim</strong></TableCell>
                   <TableCell><strong>Tarih</strong></TableCell>
+                  <TableCell align="center"><strong>Aksiyonlar</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -406,6 +489,16 @@ const SocialMediaReports: React.FC = () => {
                         {report.createdAt?.toLocaleDateString('tr-TR')}
                       </Typography>
                     </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleEditReport(report)}
+                        size="small"
+                        title="Raporu Düzenle"
+                      >
+                        <Edit />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -424,6 +517,75 @@ const SocialMediaReports: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      <Dialog open={editModalOpen} onClose={handleCloseEditModal} maxWidth="md" fullWidth>
+        <DialogTitle>Sosyal Medya Raporu Düzenle</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+            <TextField
+              label="Platform"
+              value={editFormData.platform}
+              onChange={(e) => setEditFormData({...editFormData, platform: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Takipçi Sayısı"
+              type="number"
+              value={editFormData.followers}
+              onChange={(e) => setEditFormData({...editFormData, followers: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="İleti/Gönderi Sayısı"
+              type="number"
+              value={editFormData.posts}
+              onChange={(e) => setEditFormData({...editFormData, posts: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Beğeni Sayısı"
+              type="number"
+              value={editFormData.likes}
+              onChange={(e) => setEditFormData({...editFormData, likes: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Yorum Sayısı"
+              type="number"
+              value={editFormData.comments}
+              onChange={(e) => setEditFormData({...editFormData, comments: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Görüntülenme Sayısı"
+              type="number"
+              value={editFormData.views}
+              onChange={(e) => setEditFormData({...editFormData, views: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Yeni Takipçi"
+              type="number"
+              value={editFormData.newFollowers}
+              onChange={(e) => setEditFormData({...editFormData, newFollowers: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="En Çok Etkileşim Alan Post (Link)"
+              value={editFormData.mostEngagedPost}
+              onChange={(e) => setEditFormData({...editFormData, mostEngagedPost: e.target.value})}
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditModal}>İptal</Button>
+          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+            Kaydet
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
