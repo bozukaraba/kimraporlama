@@ -14,10 +14,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { ArrowBack, Add, Delete } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { generateMonthOptions, getCurrentMonthYear } from '../../utils/dateUtils';
 import 'dayjs/locale/tr';
 import { collection, addDoc } from 'firebase/firestore';
@@ -27,7 +24,6 @@ import { useAuth } from '../../contexts/AuthContext';
 dayjs.locale('tr');
 
 const CimerForm: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonthYear());
   // Başvuru / Cevaplama Oranları
   const [applications, setApplications] = useState('');
@@ -79,7 +75,7 @@ const CimerForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !applications || !processedApplications) {
+    if (!selectedMonth || !applications || !processedApplications) {
       setError('Tüm gerekli alanları doldurun');
       return;
     }
