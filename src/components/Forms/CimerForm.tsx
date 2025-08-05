@@ -11,15 +11,25 @@ import {
   Toolbar,
   Alert,
   IconButton,
-  MenuItem
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Divider
 } from '@mui/material';
-import { ArrowBack, Add, Delete } from '@mui/icons-material';
+import { ArrowBack, Add, Delete, Edit, Save, Cancel } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { generateMonthOptions, getCurrentMonthYear } from '../../utils/dateUtils';
 import 'dayjs/locale/tr';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatMonthToTurkish } from '../../utils/dateUtils';
+import { useEffect } from 'react';
 
 dayjs.locale('tr');
 
@@ -37,8 +47,37 @@ const CimerForm: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   
+  // Edit Mode States
+  const [editingReport, setEditingReport] = useState<any | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [myReports, setMyReports] = useState<any[]>([]);
+  
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+
+  useEffect(() => {
+    fetchMyReports();
+  }, [currentUser]);
+
+  const fetchMyReports = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const q = query(
+        collection(db, 'cimerReports'),
+        where('userId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const reports = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMyReports(reports);
+    } catch (error) {
+      console.error('Raporlar yüklenirken hata:', error);
+    }
+  };
 
   const handleAddDepartment = () => {
     setTopDepartments([...topDepartments, {name: '', rate: ''}]);
@@ -104,21 +143,69 @@ const CimerForm: React.FC = () => {
         createdAt: new Date()
       };
 
-      await addDoc(collection(db, 'cimerReports'), reportData);
-      setMessage('CİMER raporu başarıyla kaydedildi!');
+      if (isEditMode && editingReport) {
+        // Güncelleme işlemi
+        const reportRef = doc(db, 'cimerReports', editingReport.id);
+        await updateDoc(reportRef, { ...reportData, updatedAt: new Date() });
+        setMessage('CİMER raporu başarıyla güncellendi!');
+      } else {
+        // Yeni rapor ekleme
+        await addDoc(collection(db, 'cimerReports'), reportData);
+        setMessage('CİMER raporu başarıyla kaydedildi!');
+      }
       
-      // Form temizle
-      setApplications('');
-      setProcessedApplications('');
-      setTopDepartments([{name: '', rate: ''}]);
-      setApplicationTopics([{topic: '', count: ''}]);
-      
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      // Form temizle ve raporları yenile
+      clearForm();
+      await fetchMyReports();
       
     } catch (err) {
       setError('Rapor kaydedilirken hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearForm = () => {
+    setSelectedMonth(getCurrentMonthYear());
+    setApplications('');
+    setProcessedApplications('');
+    setTopDepartments([{name: '', rate: ''}]);
+    setApplicationTopics([{topic: '', count: ''}]);
+    setIsEditMode(false);
+    setEditingReport(null);
+  };
+
+  const handleEditReport = (report: any) => {
+    setEditingReport(report);
+    setIsEditMode(true);
+    setSelectedMonth(report.month);
+    setApplications(String(report.applications || 0));
+    setProcessedApplications(String(report.processedApplications || 0));
+    setTopDepartments(
+      (report.topDepartments || []).map((dept: any) => ({
+        name: dept.name || '',
+        rate: String(dept.rate || 0)
+      }))
+    );
+    setApplicationTopics(
+      (report.applicationTopics || []).map((topic: any) => ({
+        topic: topic.topic || '',
+        count: String(topic.count || 0)
+      }))
+    );
+  };
+
+  const handleDeleteReport = async (reportId: string) => {
+    if (!window.confirm('Bu raporu silmek istediğinizden emin misiniz?')) return;
+    
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, 'cimerReports', reportId));
+      setMessage('Rapor başarıyla silindi!');
+      await fetchMyReports();
+    } catch (error) {
+      setError('Rapor silinirken hata oluştu');
+      console.error('Error deleting report:', error);
     } finally {
       setLoading(false);
     }
@@ -278,16 +365,102 @@ const CimerForm: React.FC = () => {
               Konu Ekle
             </Button>
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              sx={{ mt: 3, mb: 2 }}
-            >
-              {loading ? 'Kaydediliyor...' : 'Raporu Kaydet'}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={loading}
+                startIcon={isEditMode ? <Save /> : <Add />}
+              >
+                {loading 
+                  ? (isEditMode ? 'Güncelleniyor...' : 'Kaydediliyor...') 
+                  : (isEditMode ? 'Güncelle' : 'Kaydet')
+                }
+              </Button>
+              {isEditMode && (
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="large"
+                  onClick={clearForm}
+                  startIcon={<Cancel />}
+                >
+                  İptal
+                </Button>
+              )}
+            </Box>
           </Box>
+
+          {/* Mevcut Raporlarım */}
+          {myReports.length > 0 && (
+            <>
+              <Divider sx={{ my: 4 }} />
+              <Typography variant="h5" gutterBottom>
+                Kaydettiğim Raporlar ({myReports.length})
+              </Typography>
+              <TableContainer component={Paper} sx={{ mt: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>Ay/Yıl</strong></TableCell>
+                      <TableCell align="right"><strong>Başvuru</strong></TableCell>
+                      <TableCell align="right"><strong>İşlenen</strong></TableCell>
+                      <TableCell align="right"><strong>Başarı Oranı</strong></TableCell>
+                      <TableCell align="center"><strong>Aksiyonlar</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {myReports.map((report) => {
+                      const successRate = ((report.processedApplications / report.applications) * 100);
+                      return (
+                        <TableRow key={report.id} hover>
+                          <TableCell>
+                            <Chip 
+                              label={formatMonthToTurkish(report.month)}
+                              color="primary"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            {(report.applications || 0).toLocaleString('tr-TR')}
+                          </TableCell>
+                          <TableCell align="right">
+                            {(report.processedApplications || 0).toLocaleString('tr-TR')}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Chip 
+                              label={`${successRate.toFixed(1)}%`}
+                              color={successRate > 80 ? 'success' : successRate > 60 ? 'warning' : 'error'}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleEditReport(report)}
+                              size="small"
+                              title="Düzenle"
+                            >
+                              <Edit />
+                            </IconButton>
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDeleteReport(report.id)}
+                              size="small"
+                              title="Sil"
+                            >
+                              <Delete />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
         </Paper>
       </Container>
     </>
