@@ -204,7 +204,7 @@ const SocialMediaReports: React.FC = () => {
       const { doc, updateDoc } = await import('firebase/firestore');
       const { db } = await import('../../firebase/config');
 
-      const reportRef = doc(db, 'socialMediaReports', editingReport.id);
+      const reportRef = doc(db, 'socialMediaReports', editingReport.id!);
       await updateDoc(reportRef, {
         platform: editFormData.platform,
         followers: parseInt(editFormData.followers) || 0,

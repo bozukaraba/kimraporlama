@@ -227,7 +227,7 @@ const CimerReports: React.FC = () => {
       const { doc, updateDoc } = await import('firebase/firestore');
       const { db } = await import('../../firebase/config');
 
-      const reportRef = doc(db, 'cimerReports', editingReport.id);
+      const reportRef = doc(db, 'cimerReports', editingReport.id!);
       await updateDoc(reportRef, {
         applications: parseInt(editFormData.applications) || 0,
         processedApplications: parseInt(editFormData.processedApplications) || 0,
