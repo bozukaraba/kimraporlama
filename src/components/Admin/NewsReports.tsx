@@ -254,17 +254,19 @@ const NewsReports: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Reklam Eşdeğeri (TL)
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={adEquivalentData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                  <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" />
-                  <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" />
-                  <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
-                </LineChart>
-              </ResponsiveContainer>
+              <div id="news-equivalent-chart">
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={adEquivalentData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                    <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" />
+                    <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" />
+                    <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -273,8 +275,9 @@ const NewsReports: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Toplam Erişim (Kişi)
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={totalReachData}>
+              <div id="news-reach-chart">
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={totalReachData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -284,6 +287,7 @@ const NewsReports: React.FC = () => {
                   <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
                 </LineChart>
               </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </Box>

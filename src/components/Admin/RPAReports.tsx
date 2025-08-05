@@ -225,25 +225,27 @@ const RPAReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Gelen/İletilen Mailler
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={emailData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar 
-                      dataKey="incomingEmails" 
-                      fill="#8884d8" 
-                      name="Gelen Mail"
-                    />
-                    <Bar 
-                      dataKey="sentEmails" 
-                      fill="#82ca9d" 
-                      name="İletilen Mail"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div id="rpa-emails-chart">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={emailData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar 
+                        dataKey="incomingEmails" 
+                        fill="#8884d8" 
+                        name="Gelen Mail"
+                      />
+                      <Bar 
+                        dataKey="sentEmails" 
+                        fill="#82ca9d" 
+                        name="İletilen Mail"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </Box>
@@ -254,8 +256,9 @@ const RPAReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   En Çok Başvuru/Talep Alan Mailler
                 </Typography>
-                <ResponsiveContainer width="100%" height={400}>
-                  <PieChart>
+                <div id="rpa-recipients-chart">
+                  <ResponsiveContainer width="100%" height={400}>
+                    <PieChart>
                     <Pie
                       data={topEmailRecipientsData}
                       cx="50%"
@@ -273,6 +276,7 @@ const RPAReports: React.FC = () => {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           )}

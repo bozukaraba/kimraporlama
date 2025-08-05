@@ -201,17 +201,19 @@ const WebAnalyticsReports: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Ziyaretçi Sayısı Karşılaştırması
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                  <Legend />
-                  <Bar dataKey="websiteVisitors" fill="#8884d8" name="Web Sitesi" />
-                  <Bar dataKey="portalVisitors" fill="#82ca9d" name="Portal" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div id="web-visitors-chart">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                    <Legend />
+                    <Bar dataKey="websiteVisitors" fill="#8884d8" name="Web Sitesi" />
+                    <Bar dataKey="portalVisitors" fill="#82ca9d" name="Portal" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -220,17 +222,19 @@ const WebAnalyticsReports: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Sayfa Görüntüleme Karşılaştırması
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                  <Legend />
-                  <Bar dataKey="websitePageViews" fill="#ffc658" name="Web Sitesi" />
-                  <Bar dataKey="portalPageViews" fill="#ff7300" name="Portal" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div id="web-pageviews-chart">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                    <Legend />
+                    <Bar dataKey="websitePageViews" fill="#ffc658" name="Web Sitesi" />
+                    <Bar dataKey="portalPageViews" fill="#ff7300" name="Portal" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </Box>

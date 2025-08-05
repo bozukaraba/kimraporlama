@@ -103,7 +103,7 @@ export const exportSocialMediaReport = async (
     }));
     
     optimizeChartsForPrint();
-    const chartIds = ['social-engagement-chart', 'social-followers-chart'];
+    const chartIds = ['social-followers-chart', 'social-engagement-chart', 'social-interaction-chart'];
     await printToPDF(title, printData, chartIds);
     return;
   }
@@ -151,7 +151,7 @@ export const exportNewsReport = async (
     }));
     
     optimizeChartsForPrint();
-    const chartIds = ['news-count-chart', 'news-reach-chart', 'news-equivalent-chart'];
+    const chartIds = ['news-count-chart', 'news-equivalent-chart', 'news-reach-chart'];
     await printToPDF(title, printData, chartIds);
     return;
   }

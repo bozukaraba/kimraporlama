@@ -293,22 +293,24 @@ const SocialMediaReports: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Toplam Etkileşim Trendi
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={engagementData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="totalEngagement" 
-                    stroke="#ff7300" 
-                    name="Toplam Etkileşim"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div id="social-interaction-chart">
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={engagementData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="totalEngagement" 
+                      stroke="#ff7300" 
+                      name="Toplam Etkileşim"
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </Box>
