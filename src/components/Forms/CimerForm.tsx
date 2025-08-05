@@ -10,13 +10,15 @@ import {
   AppBar,
   Toolbar,
   Alert,
-  IconButton
+  IconButton,
+  MenuItem
 } from '@mui/material';
 import { ArrowBack, Add, Delete } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { generateMonthOptions, getCurrentMonthYear } from '../../utils/dateUtils';
 import 'dayjs/locale/tr';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -26,6 +28,7 @@ dayjs.locale('tr');
 
 const CimerForm: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonthYear());
   // Başvuru / Cevaplama Oranları
   const [applications, setApplications] = useState('');
   const [processedApplications, setProcessedApplications] = useState('');
@@ -89,8 +92,8 @@ const CimerForm: React.FC = () => {
       setError('');
       
       const reportData = {
-        month: selectedDate.format('YYYY-MM'),
-        year: selectedDate.year(),
+        month: selectedMonth,
+        year: parseInt(selectedMonth.split('-')[0]),
         applications: parseInt(applications),
         processedApplications: parseInt(processedApplications),
         topDepartments: validDepartments.map(dept => ({
@@ -162,22 +165,22 @@ const CimerForm: React.FC = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
-              <DatePicker
-                label="Rapor Ayı"
-                value={selectedDate}
-                onChange={(newValue) => setSelectedDate(newValue)}
-                views={['year', 'month']}
-                format="MMMM YYYY"
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    margin: 'normal',
-                    required: true
-                  }
-                }}
-              />
-            </LocalizationProvider>
+            <TextField
+              select
+              required
+              fullWidth
+              label="Rapor Ayı"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              margin="normal"
+              helperText="Raporlamak istediğiniz ayı seçin"
+            >
+              {generateMonthOptions(2020).map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
               4.1. Başvuru / Cevaplama Oranları

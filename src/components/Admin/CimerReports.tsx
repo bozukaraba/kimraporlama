@@ -15,7 +15,10 @@ import {
   CircularProgress,
   Button,
   TextField,
-  MenuItem
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import { FileDownload } from '@mui/icons-material';
 import {
@@ -34,6 +37,13 @@ import {
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { CimerReport } from '../../types';
+import { 
+  formatMonthToTurkish, 
+  getAvailableYears, 
+  getAvailableMonths,
+  filterByYear,
+  filterByMonth
+} from '../../utils/dateUtils';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#A282CA', '#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9'];
 
@@ -43,6 +53,7 @@ const CimerReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchReports();
@@ -51,7 +62,7 @@ const CimerReports: React.FC = () => {
   useEffect(() => {
     filterReports();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reports, yearFilter]);
+  }, [reports, yearFilter, monthFilter]);
 
   const fetchReports = async () => {
     try {
@@ -77,24 +88,31 @@ const CimerReports: React.FC = () => {
   };
 
   const filterReports = () => {
-    if (yearFilter === 'all') {
-      setFilteredReports(reports);
-    } else {
-      setFilteredReports(reports.filter(report => report.year.toString() === yearFilter));
+    let filtered = reports;
+    
+    // Yıl filtresi
+    if (yearFilter !== 'all') {
+      filtered = filterByYear(filtered, yearFilter);
     }
+    
+    // Ay filtresi  
+    if (monthFilter !== 'all') {
+      filtered = filterByMonth(filtered, monthFilter);
+    }
+    
+    setFilteredReports(filtered);
   };
 
-  const getAvailableYears = () => {
-    const years = Array.from(new Set(reports.map(report => report.year)));
-    return years.sort((a, b) => b - a);
-  };
+  const availableYears = getAvailableYears(reports);
+  const availableMonths = getAvailableMonths(reports, yearFilter);
 
   const getApplicationData = () => {
     return filteredReports
       .filter(report => report && report.month && typeof report.applications === 'number')
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
-        month: report.month,
+        month: formatMonthToTurkish(report.month),
+        monthOriginal: report.month,
         applications: report.applications || 0,
         processedApplications: report.processedApplications || 0,
         successRate: report.applications > 0 ? ((report.processedApplications / report.applications) * 100).toFixed(1) : '0'
@@ -197,20 +215,40 @@ const CimerReports: React.FC = () => {
           CİMER Raporları
         </Typography>
         
-        <Box display="flex" gap={2}>
-          <TextField
-            select
-            label="Yıl Filtresi"
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            size="small"
-            sx={{ minWidth: 120 }}
-          >
-            <MenuItem value="all">Tümü</MenuItem>
-            {getAvailableYears().map(year => (
-              <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
-            ))}
-          </TextField>
+        <Box display="flex" gap={2} flexWrap="wrap">
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Yıl Filtresi</InputLabel>
+            <Select
+              value={yearFilter}
+              label="Yıl Filtresi"
+              onChange={(e) => {
+                setYearFilter(e.target.value);
+                setMonthFilter('all'); // Yıl değiştiğinde ay filtresini sıfırla
+              }}
+            >
+              <MenuItem value="all">Tüm Yıllar</MenuItem>
+              {availableYears.map(year => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Ay Filtresi</InputLabel>
+            <Select
+              value={monthFilter}
+              label="Ay Filtresi"
+              onChange={(e) => setMonthFilter(e.target.value)}
+              disabled={yearFilter === 'all' && availableMonths.length === 0}
+            >
+              <MenuItem value="all">Tüm Aylar</MenuItem>
+              {availableMonths.map(month => (
+                <MenuItem key={month} value={month}>
+                  {formatMonthToTurkish(month)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           
           <Button
             variant="outlined"
@@ -329,14 +367,14 @@ const CimerReports: React.FC = () => {
                 {filteredReports.map((report) => {
                   const successRate = ((report.processedApplications / report.applications) * 100);
                   return (
-                    <TableRow key={report.id} hover>
-                      <TableCell>
-                        <Chip 
-                          label={`${report.month}`}
-                          color="primary"
-                          size="small"
-                        />
-                      </TableCell>
+                                      <TableRow key={report.id} hover>
+                    <TableCell>
+                      <Chip 
+                        label={formatMonthToTurkish(report.month)}
+                        color="primary"
+                        size="small"
+                      />
+                    </TableCell>
                       <TableCell align="right">
                         <Box>
                           <Typography variant="body2" color="primary">
