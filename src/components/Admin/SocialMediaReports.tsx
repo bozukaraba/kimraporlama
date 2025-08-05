@@ -15,9 +15,12 @@ import {
   CircularProgress,
   Button,
   TextField,
-  MenuItem
+  MenuItem,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { FileDownload } from '@mui/icons-material';
+import { FileDownload, PictureAsPdf } from '@mui/icons-material';
 import {
   LineChart,
   Line,
@@ -33,6 +36,7 @@ import {
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { SocialMediaReport } from '../../types';
+import { exportSocialMediaReport } from '../../utils/exportUtils';
 
 const SocialMediaReports: React.FC = () => {
   const [reports, setReports] = useState<SocialMediaReport[]>([]);
@@ -41,6 +45,8 @@ const SocialMediaReports: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
+  const [exportLoading, setExportLoading] = useState<string>('');
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     fetchReports();
@@ -125,35 +131,19 @@ const SocialMediaReports: React.FC = () => {
       }));
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredReports.map(report => ({
-      'Ay': report.month,
-      'Yıl': report.year,
-      'Platform': report.platform,
-      'Takipçi Sayısı': report.followers,
-      'İleti Sayısı': report.posts,
-      'Beğeni': report.likes,
-      'Yorum': report.comments,
-      'Görüntülenme': report.views,
-      'Yeni Takipçi': report.newFollowers,
-      'Paylaşım': report.shares || '',
-      'Retweet': report.retweets || '',
-      'En Çok Etkileşim': report.mostEngagedPost || '',
-      'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
-    }));
-
-    const csvString = [
-      Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sosyal-medya-raporlari-${yearFilter}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    try {
+      setExportLoading(format);
+      setExportMenuAnchor(null);
+      
+      await exportSocialMediaReport(filteredReports, format, yearFilter, platformFilter);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      setError(`${format.toUpperCase()} oluşturma hatası: ${(error as Error).message}`);
+    } finally {
+      setExportLoading('');
+    }
   };
 
   if (loading) {
@@ -219,11 +209,30 @@ const SocialMediaReports: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<FileDownload />}
-            onClick={exportToCSV}
-            disabled={filteredReports.length === 0}
+            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+            disabled={filteredReports.length === 0 || exportLoading !== ''}
           >
-            CSV İndir
+            {exportLoading ? `${exportLoading.toUpperCase()} Hazırlanıyor...` : 'Rapor İndir'}
           </Button>
+          
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={() => setExportMenuAnchor(null)}
+          >
+            <MenuItem onClick={() => handleExport('csv')}>
+              <ListItemIcon>
+                <FileDownload fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>CSV İndir</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleExport('pdf')}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>PDF İndir (Print)</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
 
@@ -236,8 +245,9 @@ const SocialMediaReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Takipçi Sayısı Trendi
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
+                <div id="social-followers-chart">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -252,6 +262,7 @@ const SocialMediaReports: React.FC = () => {
                     />
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
 
@@ -260,17 +271,19 @@ const SocialMediaReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Görüntülenme ve Beğeni
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                    <Legend />
-                    <Bar dataKey="views" fill="#8884d8" name="Görüntülenme" />
-                    <Bar dataKey="likes" fill="#82ca9d" name="Beğeni" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div id="social-engagement-chart">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
+                      <Legend />
+                      <Bar dataKey="views" fill="#8884d8" name="Görüntülenme" />
+                      <Bar dataKey="likes" fill="#82ca9d" name="Beğeni" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </Box>

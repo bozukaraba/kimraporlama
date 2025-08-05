@@ -15,9 +15,12 @@ import {
   CircularProgress,
   Button,
   TextField,
-  MenuItem
+  MenuItem,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { FileDownload } from '@mui/icons-material';
+import { FileDownload, PictureAsPdf } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
@@ -32,6 +35,7 @@ import {
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { NewsReport } from '../../types';
+import { exportNewsReport } from '../../utils/exportUtils';
 
 const NewsReports: React.FC = () => {
   const [reports, setReports] = useState<NewsReport[]>([]);
@@ -39,6 +43,8 @@ const NewsReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [exportLoading, setExportLoading] = useState<string>('');
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     fetchReports();
@@ -127,35 +133,19 @@ const NewsReports: React.FC = () => {
     })).sort((a, b) => a.month.localeCompare(b.month));
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredReports.map(report => ({
-      'Ay': report.month,
-      'Yıl': report.year,
-      'İçerik': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
-      'Basın Haber Sayısı': report.newsCount?.print || 0,
-      'TV Haber Sayısı': report.newsCount?.tv || 0,
-      'İnternet Haber Sayısı': report.newsCount?.internet || 0,
-      'Basın Reklam Eşdeğeri (TL)': report.adEquivalent?.print || 0,
-      'TV Reklam Eşdeğeri (TL)': report.adEquivalent?.tv || 0,
-      'İnternet Reklam Eşdeğeri (TL)': report.adEquivalent?.internet || 0,
-      'Basın Toplam Erişim': report.totalReach?.print || 0,
-      'TV Toplam Erişim': report.totalReach?.tv || 0,
-      'İnternet Toplam Erişim': report.totalReach?.internet || 0,
-      'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
-    }));
-
-    const csvString = [
-      Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `haber-raporlari-${yearFilter}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    try {
+      setExportLoading(format);
+      setExportMenuAnchor(null);
+      
+      await exportNewsReport(filteredReports, format, yearFilter, 'all');
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      setError(`${format.toUpperCase()} oluşturma hatası: ${(error as Error).message}`);
+    } finally {
+      setExportLoading('');
+    }
   };
 
   if (loading) {
@@ -208,11 +198,30 @@ const NewsReports: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<FileDownload />}
-            onClick={exportToCSV}
-            disabled={filteredReports.length === 0}
+            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+            disabled={filteredReports.length === 0 || exportLoading !== ''}
           >
-            CSV İndir
+            {exportLoading ? `${exportLoading.toUpperCase()} Hazırlanıyor...` : 'Rapor İndir'}
           </Button>
+          
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={() => setExportMenuAnchor(null)}
+          >
+            <MenuItem onClick={() => handleExport('csv')}>
+              <ListItemIcon>
+                <FileDownload fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>CSV İndir</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleExport('pdf')}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>PDF İndir (Print)</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
 
@@ -224,8 +233,9 @@ const NewsReports: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Medyada Yer Alma (Haber Sayısı)
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={newsCountData}>
+              <div id="news-count-chart">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={newsCountData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -235,6 +245,7 @@ const NewsReports: React.FC = () => {
                   <Bar dataKey="internet" fill="#ffc658" name="İnternet" />
                 </BarChart>
               </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 

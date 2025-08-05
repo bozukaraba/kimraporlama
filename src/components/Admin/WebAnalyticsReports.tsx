@@ -15,9 +15,12 @@ import {
   CircularProgress,
   Button,
   TextField,
-  MenuItem
+  MenuItem,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { FileDownload } from '@mui/icons-material';
+import { FileDownload, PictureAsPdf } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
@@ -31,6 +34,7 @@ import {
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { WebAnalyticsReport } from '../../types';
+import { exportWebAnalyticsReport } from '../../utils/exportUtils';
 
 const WebAnalyticsReports: React.FC = () => {
   const [reports, setReports] = useState<WebAnalyticsReport[]>([]);
@@ -38,6 +42,8 @@ const WebAnalyticsReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [exportLoading, setExportLoading] = useState<string>('');
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     fetchReports();
@@ -97,31 +103,19 @@ const WebAnalyticsReports: React.FC = () => {
       }));
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredReports.map(report => ({
-      'Ay': report.month,
-      'Yıl': report.year,
-      'Web Sitesi Ziyaretçi': report.visitors?.website || 0,
-      'Portal Ziyaretçi': report.visitors?.portal || 0,
-      'Web Sitesi Sayfa Görüntüleme': report.pageViews?.website || 0,
-      'Portal Sayfa Görüntüleme': report.pageViews?.portal || 0,
-      'Web Sitesi Popüler Sayfalar': (report.topPages?.website || []).join('; '),
-      'Portal Popüler Sayfalar': (report.topPages?.portal || []).join('; '),
-      'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
-    }));
-
-    const csvString = [
-      Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `web-analitik-raporlari-${yearFilter}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    try {
+      setExportLoading(format);
+      setExportMenuAnchor(null);
+      
+      await exportWebAnalyticsReport(filteredReports, format, yearFilter, 'all');
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      setError(`${format.toUpperCase()} oluşturma hatası: ${(error as Error).message}`);
+    } finally {
+      setExportLoading('');
+    }
   };
 
   if (loading) {
@@ -172,11 +166,30 @@ const WebAnalyticsReports: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<FileDownload />}
-            onClick={exportToCSV}
-            disabled={filteredReports.length === 0}
+            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+            disabled={filteredReports.length === 0 || exportLoading !== ''}
           >
-            CSV İndir
+            {exportLoading ? `${exportLoading.toUpperCase()} Hazırlanıyor...` : 'Rapor İndir'}
           </Button>
+          
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={() => setExportMenuAnchor(null)}
+          >
+            <MenuItem onClick={() => handleExport('csv')}>
+              <ListItemIcon>
+                <FileDownload fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>CSV İndir</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleExport('pdf')}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>PDF İndir (Print)</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
 
