@@ -32,6 +32,7 @@ export interface NewsReport {
   };
   userId: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 // 2. Sosyal Medya Raporu
@@ -49,8 +50,14 @@ export interface SocialMediaReport {
   views: number;
   newFollowers: number;
   mostEngagedPost?: string;
+  // Ek Metrikler
+  topPost?: {
+    engagement: number;
+    link?: string;
+  };
   userId: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 // 3. Web Sitesi ve İç İletişim Portalı
@@ -73,8 +80,12 @@ export interface WebAnalyticsReport {
     website: string[];
     portal: string[];
   };
+  // Ek Metrikler
+  avgSessionDuration?: number; // dakika
+  bounceRate?: number; // yüzde
   userId: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 // 4. CİMER Raporu
@@ -85,6 +96,8 @@ export interface CimerReport {
   // Başvuru / Cevaplama Oranları
   applications: number;
   processedApplications: number;
+  // Ortalama İşlem Süresi (Gün)
+  averageProcessingTime?: number;
   // En Çok Başvuru Alan Birimler
   topDepartments: Array<{
     name: string;
@@ -97,6 +110,7 @@ export interface CimerReport {
   }>;
   userId: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 // 5. RPA Raporu
@@ -112,6 +126,10 @@ export interface RPAReport {
     email: string;
     count: number;
   }>;
+  // Ek Metrikler
+  avgResponseTime?: number; // saat
+  automationRate?: number; // yüzde
   userId: string;
   createdAt: Date;
+  updatedAt?: Date;
 } 
