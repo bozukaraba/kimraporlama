@@ -132,15 +132,15 @@ const NewsReports: React.FC = () => {
       'Ay': report.month,
       'Yıl': report.year,
       'İçerik': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
-      'Basın Haber Sayısı': report.newsCount.print,
-      'TV Haber Sayısı': report.newsCount.tv,
-      'İnternet Haber Sayısı': report.newsCount.internet,
-      'Basın Reklam Eşdeğeri (TL)': report.adEquivalent.print,
-      'TV Reklam Eşdeğeri (TL)': report.adEquivalent.tv,
-      'İnternet Reklam Eşdeğeri (TL)': report.adEquivalent.internet,
-      'Basın Toplam Erişim': report.totalReach.print,
-      'TV Toplam Erişim': report.totalReach.tv,
-      'İnternet Toplam Erişim': report.totalReach.internet,
+      'Basın Haber Sayısı': report.newsCount?.print || 0,
+      'TV Haber Sayısı': report.newsCount?.tv || 0,
+      'İnternet Haber Sayısı': report.newsCount?.internet || 0,
+      'Basın Reklam Eşdeğeri (TL)': report.adEquivalent?.print || 0,
+      'TV Reklam Eşdeğeri (TL)': report.adEquivalent?.tv || 0,
+      'İnternet Reklam Eşdeğeri (TL)': report.adEquivalent?.internet || 0,
+      'Basın Toplam Erişim': report.totalReach?.print || 0,
+      'TV Toplam Erişim': report.totalReach?.tv || 0,
+      'İnternet Toplam Erişim': report.totalReach?.internet || 0,
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -317,31 +317,31 @@ const NewsReports: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Box>
-                        <Typography variant="body2">Basın: {report.newsCount.print}</Typography>
-                        <Typography variant="body2">TV: {report.newsCount.tv}</Typography>
-                        <Typography variant="body2">İnternet: {report.newsCount.internet}</Typography>
+                        <Typography variant="body2">Basın: {report.newsCount?.print || 0}</Typography>
+                        <Typography variant="body2">TV: {report.newsCount?.tv || 0}</Typography>
+                        <Typography variant="body2">İnternet: {report.newsCount?.internet || 0}</Typography>
                         <Typography variant="body2" fontWeight="bold">
-                          Toplam: {report.newsCount.print + report.newsCount.tv + report.newsCount.internet}
+                          Toplam: {(report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0)}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box>
-                        <Typography variant="body2">Basın: {report.adEquivalent.print.toLocaleString('tr-TR')}</Typography>
-                        <Typography variant="body2">TV: {report.adEquivalent.tv.toLocaleString('tr-TR')}</Typography>
-                        <Typography variant="body2">İnternet: {report.adEquivalent.internet.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Basın: {(report.adEquivalent?.print || 0).toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">TV: {(report.adEquivalent?.tv || 0).toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">İnternet: {(report.adEquivalent?.internet || 0).toLocaleString('tr-TR')}</Typography>
                         <Typography variant="body2" fontWeight="bold">
-                          Toplam: {(report.adEquivalent.print + report.adEquivalent.tv + report.adEquivalent.internet).toLocaleString('tr-TR')}
+                          Toplam: {((report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0)).toLocaleString('tr-TR')}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box>
-                        <Typography variant="body2">Basın: {report.totalReach.print.toLocaleString('tr-TR')}</Typography>
-                        <Typography variant="body2">TV: {report.totalReach.tv.toLocaleString('tr-TR')}</Typography>
-                        <Typography variant="body2">İnternet: {report.totalReach.internet.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Basın: {(report.totalReach?.print || 0).toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">TV: {(report.totalReach?.tv || 0).toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">İnternet: {(report.totalReach?.internet || 0).toLocaleString('tr-TR')}</Typography>
                         <Typography variant="body2" fontWeight="bold">
-                          Toplam: {(report.totalReach.print + report.totalReach.tv + report.totalReach.internet).toLocaleString('tr-TR')}
+                          Toplam: {((report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0)).toLocaleString('tr-TR')}
                         </Typography>
                       </Box>
                     </TableCell>

@@ -101,12 +101,12 @@ const WebAnalyticsReports: React.FC = () => {
     const csvData = filteredReports.map(report => ({
       'Ay': report.month,
       'Yıl': report.year,
-      'Web Sitesi Ziyaretçi': report.visitors.website,
-      'Portal Ziyaretçi': report.visitors.portal,
-      'Web Sitesi Sayfa Görüntüleme': report.pageViews.website,
-      'Portal Sayfa Görüntüleme': report.pageViews.portal,
-      'Web Sitesi Popüler Sayfalar': report.topPages.website.join('; '),
-      'Portal Popüler Sayfalar': report.topPages.portal.join('; '),
+      'Web Sitesi Ziyaretçi': report.visitors?.website || 0,
+      'Portal Ziyaretçi': report.visitors?.portal || 0,
+      'Web Sitesi Sayfa Görüntüleme': report.pageViews?.website || 0,
+      'Portal Sayfa Görüntüleme': report.pageViews?.portal || 0,
+      'Web Sitesi Popüler Sayfalar': (report.topPages?.website || []).join('; '),
+      'Portal Popüler Sayfalar': (report.topPages?.portal || []).join('; '),
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -253,26 +253,26 @@ const WebAnalyticsReports: React.FC = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Box>
-                        <Typography variant="body2">Web: {report.visitors.website.toLocaleString('tr-TR')}</Typography>
-                        <Typography variant="body2">Portal: {report.visitors.portal.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Web: {(report.visitors?.website || 0).toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Portal: {(report.visitors?.portal || 0).toLocaleString('tr-TR')}</Typography>
                         <Typography variant="body2" fontWeight="bold" color="primary">
-                          Toplam: {(report.visitors.website + report.visitors.portal).toLocaleString('tr-TR')}
+                          Toplam: {((report.visitors?.website || 0) + (report.visitors?.portal || 0)).toLocaleString('tr-TR')}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell align="right">
                       <Box>
-                        <Typography variant="body2">Web: {report.pageViews.website.toLocaleString('tr-TR')}</Typography>
-                        <Typography variant="body2">Portal: {report.pageViews.portal.toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Web: {(report.pageViews?.website || 0).toLocaleString('tr-TR')}</Typography>
+                        <Typography variant="body2">Portal: {(report.pageViews?.portal || 0).toLocaleString('tr-TR')}</Typography>
                         <Typography variant="body2" fontWeight="bold" color="success.main">
-                          Toplam: {(report.pageViews.website + report.pageViews.portal).toLocaleString('tr-TR')}
+                          Toplam: {((report.pageViews?.website || 0) + (report.pageViews?.portal || 0)).toLocaleString('tr-TR')}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight="bold">Web Sitesi:</Typography>
-                        {report.topPages.website.slice(0, 3).map((page, index) => (
+                        {(report.topPages?.website || []).slice(0, 3).map((page, index) => (
                           <Chip 
                             key={index}
                             label={`${index + 1}. ${page.length > 30 ? page.substring(0, 30) + '...' : page}`}
@@ -282,7 +282,7 @@ const WebAnalyticsReports: React.FC = () => {
                           />
                         ))}
                         <Typography variant="body2" fontWeight="bold" sx={{ mt: 1 }}>Portal:</Typography>
-                        {report.topPages.portal.slice(0, 3).map((page, index) => (
+                        {(report.topPages?.portal || []).slice(0, 3).map((page, index) => (
                           <Chip 
                             key={index}
                             label={`${index + 1}. ${page.length > 30 ? page.substring(0, 30) + '...' : page}`}

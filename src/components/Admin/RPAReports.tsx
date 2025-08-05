@@ -125,7 +125,7 @@ const RPAReports: React.FC = () => {
       'Yıl': report.year,
       'Gelen Mail Sayısı': report.incomingEmails,
       'İletilen Mail Sayısı': report.sentEmails,
-      'En Çok Mail Alan Adresler': report.topEmailRecipients.map(r => `${r.email}(${r.count})`).join('; '),
+      'En Çok Mail Alan Adresler': (report.topEmailRecipients || []).map(r => `${r?.email || ''}(${r?.count || 0})`).join('; '),
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -293,16 +293,16 @@ const RPAReports: React.FC = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" fontWeight="bold" color="primary">
-                        {report.incomingEmails.toLocaleString('tr-TR')}
+                        {(report.incomingEmails || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" fontWeight="bold" color="success.main">
-                        {report.sentEmails.toLocaleString('tr-TR')}
+                        {(report.sentEmails || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      {report.topEmailRecipients.slice(0, 3).map((recipient, index) => (
+                      {(report.topEmailRecipients || []).slice(0, 3).map((recipient, index) => (
                         <Chip 
                           key={index}
                           label={`${recipient.email.split('@')[0]} (${recipient.count})`}
@@ -311,9 +311,9 @@ const RPAReports: React.FC = () => {
                           sx={{ mr: 0.5, mb: 0.5 }}
                         />
                       ))}
-                      {report.topEmailRecipients.length > 3 && (
+                      {(report.topEmailRecipients || []).length > 3 && (
                         <Chip 
-                          label={`+${report.topEmailRecipients.length - 3} daha`}
+                          label={`+${(report.topEmailRecipients || []).length - 3} daha`}
                           size="small"
                           variant="outlined"
                           color="secondary"

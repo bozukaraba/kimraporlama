@@ -146,8 +146,8 @@ const CimerReports: React.FC = () => {
       'Başvuru Sayısı': report.applications,
       'İşlem Yapılan': report.processedApplications,
       'Başarı Oranı (%)': ((report.processedApplications / report.applications) * 100).toFixed(1),
-      'En Çok Başvuru Alan Birimler': report.topDepartments.map(d => `${d.name}(${d.rate}%)`).join('; '),
-      'Başvuru Konuları': report.applicationTopics.map(t => `${t.topic}(${t.count})`).join('; '),
+      'En Çok Başvuru Alan Birimler': (report.topDepartments || []).map(d => `${d?.name || ''}(${d?.rate || 0}%)`).join('; '),
+      'Başvuru Konuları': (report.applicationTopics || []).map(t => `${t?.topic || ''}(${t?.count || 0})`).join('; '),
       'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
     }));
 
@@ -331,10 +331,10 @@ const CimerReports: React.FC = () => {
                       <TableCell align="right">
                         <Box>
                           <Typography variant="body2" color="primary">
-                            Başvuru: {report.applications.toLocaleString('tr-TR')}
+                            Başvuru: {(report.applications || 0).toLocaleString('tr-TR')}
                           </Typography>
                           <Typography variant="body2" color="success.main">
-                            İşlem: {report.processedApplications.toLocaleString('tr-TR')}
+                            İşlem: {(report.processedApplications || 0).toLocaleString('tr-TR')}
                           </Typography>
                         </Box>
                       </TableCell>
@@ -346,7 +346,7 @@ const CimerReports: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        {report.topDepartments.slice(0, 3).map((dept, index) => (
+                        {(report.topDepartments || []).slice(0, 3).map((dept, index) => (
                           <Chip 
                             key={index}
                             label={`${dept.name} (${dept.rate}%)`}
@@ -355,9 +355,9 @@ const CimerReports: React.FC = () => {
                             sx={{ mr: 0.5, mb: 0.5 }}
                           />
                         ))}
-                        {report.topDepartments.length > 3 && (
+                        {(report.topDepartments || []).length > 3 && (
                           <Chip 
-                            label={`+${report.topDepartments.length - 3} daha`}
+                            label={`+${(report.topDepartments || []).length - 3} daha`}
                             size="small"
                             variant="outlined"
                             color="secondary"
@@ -365,7 +365,7 @@ const CimerReports: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {report.applicationTopics.slice(0, 2).map((topic, index) => (
+                        {(report.applicationTopics || []).slice(0, 2).map((topic, index) => (
                           <Chip 
                             key={index}
                             label={`${topic.topic} (${topic.count})`}
@@ -375,9 +375,9 @@ const CimerReports: React.FC = () => {
                             sx={{ mr: 0.5, mb: 0.5 }}
                           />
                         ))}
-                        {report.applicationTopics.length > 2 && (
+                        {(report.applicationTopics || []).length > 2 && (
                           <Chip 
-                            label={`+${report.applicationTopics.length - 2} daha`}
+                            label={`+${(report.applicationTopics || []).length - 2} daha`}
                             size="small"
                             variant="outlined"
                             color="secondary"
