@@ -16,8 +16,8 @@ export const exportCimerReport = async (
       'Başvuru Sayısı': report.applications || 0,
       'İşlenen Başvuru': report.processedApplications || 0,
       'Başarı Oranı': `${(((report.processedApplications || 0) / (report.applications || 1)) * 100).toFixed(1)}%`,
-      'En Çok Başvuru Alan Birimler': (report.topDepartments || []).map(dept => `${dept.name}: %${dept.rate}`).join('; '),
-      'En Sık Başvuru Konuları': (report.applicationTopics || []).map(topic => `${topic.topic}: ${topic.count}`).join('; ')
+      'En Çok Başvuru Alan Birimler': (report.topDepartments || []).map((dept: {name: string, rate: number}) => `${dept.name}: %${dept.rate}`).join('; '),
+      'En Sık Başvuru Konuları': (report.applicationTopics || []).map((topic: {topic: string, count: number}) => `${topic.topic}: ${topic.count}`).join('; ')
     }));
     
     const csv = [
