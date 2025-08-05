@@ -282,12 +282,21 @@ const CimerReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   En Sık Başvuru Konuları
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={topTopicsData} layout="horizontal">
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={topTopicsData} layout="vertical" margin={{ left: 20, right: 30, top: 5, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
-                    <YAxis dataKey="topic" type="category" width={150} />
-                    <Tooltip />
+                    <YAxis 
+                      dataKey="topic" 
+                      type="category" 
+                      width={200}
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => value.length > 25 ? value.substring(0, 25) + '...' : value}
+                    />
+                    <Tooltip 
+                      formatter={(value, name) => [value, 'Başvuru Sayısı']}
+                      labelFormatter={(label) => `Konu: ${label}`}
+                    />
                     <Bar dataKey="count" fill="#ffc658" name="Başvuru Sayısı" />
                   </BarChart>
                 </ResponsiveContainer>
