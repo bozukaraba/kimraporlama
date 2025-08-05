@@ -1,9 +1,10 @@
 import { formatMonthToTurkish } from './dateUtils';
+import { printToPDF, optimizeChartsForPrint } from './printUtils';
 
-// CIMER CSV Export Fonksiyonu (Basitleştirilmiş)
+// CIMER Multi-Format Export Fonksiyonu
 export const exportCimerReport = async (
   reports: any[],
-  format: 'csv',
+  format: 'csv' | 'pdf',
   yearFilter: string = 'all',
   monthFilter: string = 'all'
 ): Promise<void> => {
@@ -33,5 +34,28 @@ export const exportCimerReport = async (
     return;
   }
   
-  throw new Error('Sadece CSV formatı destekleniyor');
+  if (format === 'pdf') {
+    // PDF export via browser print
+    const printData = reports.map(report => ({
+      Ay: formatMonthToTurkish(report.month),
+      'Başvuru Sayısı': report.applications || 0,
+      'İşlenen Başvuru': report.processedApplications || 0,
+      'Başarı Oranı': `${(((report.processedApplications || 0) / (report.applications || 1)) * 100).toFixed(1)}%`
+    }));
+    
+    // Chart'ları print için optimize et
+    optimizeChartsForPrint();
+    
+    // Chart ID'leri
+    const chartIds = [
+      'applications-chart',
+      'departments-chart', 
+      'topics-chart'
+    ];
+    
+    await printToPDF(title, printData, chartIds);
+    return;
+  }
+  
+  throw new Error('Desteklenmeyen format');
 };

@@ -11,3 +11,99 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Print Media Styles for PDF Export */
+@media print {
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+  
+  body {
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    color: #000 !important;
+    background: white !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Chart containers */
+  [id$="-chart"] {
+    page-break-inside: avoid !important;
+    margin: 20px 0 !important;
+    max-width: 100% !important;
+    height: 400px !important;
+  }
+  
+  [id$="-chart"] svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Table styles */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 20px 0 !important;
+    font-size: 10px !important;
+  }
+  
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 6px !important;
+    text-align: left !important;
+  }
+  
+  th {
+    background-color: #f5f5f5 !important;
+    font-weight: bold !important;
+  }
+  
+  /* Headers */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000 !important;
+    page-break-after: avoid !important;
+  }
+  
+  h1 {
+    font-size: 20px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  h2 {
+    font-size: 16px !important;
+    margin: 20px 0 10px 0 !important;
+  }
+  
+  /* Hide navigation and buttons */
+  nav,
+  .MuiAppBar-root,
+  .MuiButton-root,
+  .MuiIconButton-root,
+  .MuiMenu-root,
+  .MuiFormControl-root,
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Card containers */
+  .MuiCard-root {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    margin: 10px 0 !important;
+  }
+  
+  /* Typography */
+  .MuiTypography-root {
+    color: #000 !important;
+  }
+  
+  /* Remove background colors */
+  * {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
