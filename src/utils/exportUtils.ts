@@ -1,13 +1,13 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import PptxGenJS from 'pptxgenjs';
 import { formatMonthToTurkish } from './dateUtils';
 
-// Chart'ı canvas'a çevirme
+// Chart'ı canvas'a çevirme (Dynamic Import)
 export const captureChart = async (elementId: string): Promise<string | null> => {
   try {
     const element = document.getElementById(elementId);
     if (!element) return null;
+    
+    // Dynamic import html2canvas
+    const html2canvas = (await import('html2canvas')).default;
     
     const canvas = await html2canvas(element, {
       backgroundColor: '#ffffff',
@@ -30,13 +30,15 @@ interface ChartData {
   dataUrl?: string;
 }
 
-// PDF Export Fonksiyonu
+// PDF Export Fonksiyonu (Dynamic Import)
 export const exportToPDF = async (
   reportTitle: string,
   data: any[],
   charts: ChartData[] = []
 ): Promise<void> => {
   try {
+    // Dynamic import jsPDF
+    const jsPDF = (await import('jspdf')).default;
     const pdf = new jsPDF('p', 'mm', 'a4');
     let yPosition = 20;
     
@@ -114,13 +116,15 @@ export const exportToPDF = async (
   }
 };
 
-// PowerPoint Export Fonksiyonu
+// PowerPoint Export Fonksiyonu (Dynamic Import)
 export const exportToPPT = async (
   reportTitle: string,
   data: any[],
   charts: ChartData[] = []
 ): Promise<void> => {
   try {
+    // Dynamic import PptxGenJS
+    const PptxGenJS = (await import('pptxgenjs')).default;
     const pptx = new PptxGenJS();
     
     // Başlık Slide'ı
