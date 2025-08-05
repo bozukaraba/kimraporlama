@@ -4,7 +4,8 @@ import {
   CardContent,
   Typography,
   Box,
-  CircularProgress
+  CircularProgress,
+  Button
 } from '@mui/material';
 import {
   Assessment,
@@ -57,6 +58,7 @@ const ReportsOverview: React.FC = () => {
   });
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [lastMonth, setLastMonth] = useState<string>('');
 
   useEffect(() => {
@@ -183,6 +185,7 @@ const ReportsOverview: React.FC = () => {
 
     } catch (error) {
       console.error('Error fetching report summary:', error);
+      setError('Rapor verilerini yüklerken hata oluştu. Lütfen sayfayı yenileyin.');
     } finally {
       setLoading(false);
     }
@@ -202,6 +205,19 @@ const ReportsOverview: React.FC = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="400px" flexDirection="column">
+        <Typography variant="h6" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Sayfayı Yenile
+        </Button>
       </Box>
     );
   }

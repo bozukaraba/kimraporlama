@@ -36,6 +36,7 @@ const WebAnalyticsReports: React.FC = () => {
   const [reports, setReports] = useState<WebAnalyticsReport[]>([]);
   const [filteredReports, setFilteredReports] = useState<WebAnalyticsReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const WebAnalyticsReports: React.FC = () => {
       setReports(reportsData);
     } catch (error) {
       console.error('Error fetching web analytics reports:', error);
+      setError('Web analitik raporlarını yüklerken hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -123,6 +125,19 @@ const WebAnalyticsReports: React.FC = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="400px" flexDirection="column">
+        <Typography variant="h6" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Sayfayı Yenile
+        </Button>
       </Box>
     );
   }

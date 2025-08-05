@@ -38,6 +38,7 @@ const SocialMediaReports: React.FC = () => {
   const [reports, setReports] = useState<SocialMediaReport[]>([]);
   const [filteredReports, setFilteredReports] = useState<SocialMediaReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
 
@@ -65,6 +66,7 @@ const SocialMediaReports: React.FC = () => {
       setReports(reportsData);
     } catch (error) {
       console.error('Error fetching social media reports:', error);
+      setError('Sosyal medya raporlarını yüklerken hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -154,6 +156,19 @@ const SocialMediaReports: React.FC = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="400px" flexDirection="column">
+        <Typography variant="h6" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Sayfayı Yenile
+        </Button>
       </Box>
     );
   }

@@ -41,6 +41,7 @@ const RPAReports: React.FC = () => {
   const [reports, setReports] = useState<RPAReport[]>([]);
   const [filteredReports, setFilteredReports] = useState<RPAReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
 
   useEffect(() => {
@@ -67,6 +68,7 @@ const RPAReports: React.FC = () => {
       setReports(reportsData);
     } catch (error) {
       console.error('Error fetching RPA reports:', error);
+      setError('RPA raporlarını yüklerken hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -138,6 +140,19 @@ const RPAReports: React.FC = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="400px" flexDirection="column">
+        <Typography variant="h6" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Sayfayı Yenile
+        </Button>
       </Box>
     );
   }

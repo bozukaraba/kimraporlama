@@ -37,6 +37,7 @@ const NewsReports: React.FC = () => {
   const [reports, setReports] = useState<NewsReport[]>([]);
   const [filteredReports, setFilteredReports] = useState<NewsReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
 
   useEffect(() => {
@@ -63,6 +64,7 @@ const NewsReports: React.FC = () => {
       setReports(reportsData);
     } catch (error) {
       console.error('Error fetching news reports:', error);
+      setError('Haber raporlarını yüklerken hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -156,6 +158,19 @@ const NewsReports: React.FC = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="400px">
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="400px" flexDirection="column">
+        <Typography variant="h6" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Sayfayı Yenile
+        </Button>
       </Box>
     );
   }
