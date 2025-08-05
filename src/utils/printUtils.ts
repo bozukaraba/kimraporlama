@@ -60,6 +60,24 @@ export const generatePrintableHTML = (
           `).join('')}
         ` : ''}
         
+        ${data.length > 0 ? `
+          <h2>Detaylı Rapor Listesi</h2>
+          <table>
+            <thead>
+              <tr>
+                ${Object.keys(data[0]).map(key => `<th>${key}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(item => `
+                <tr>
+                  ${Object.values(item).map(value => `<td style="border: 1px solid #ddd; padding: 8px;">${value || ''}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : ''}
+        
         <script>
           window.onload = function() {
             window.print();

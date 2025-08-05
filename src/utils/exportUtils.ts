@@ -37,10 +37,14 @@ export const exportCimerReport = async (
   if (format === 'pdf') {
     // PDF export via browser print
     const printData = reports.map(report => ({
-      Ay: formatMonthToTurkish(report.month),
-      'Başvuru Sayısı': report.applications || 0,
-      'İşlenen Başvuru': report.processedApplications || 0,
-      'Başarı Oranı': `${(((report.processedApplications || 0) / (report.applications || 1)) * 100).toFixed(1)}%`
+      'Ay': formatMonthToTurkish(report.month),
+      'Başvuru Sayısı': (report.applications || 0).toLocaleString('tr-TR'),
+      'İşlenen Başvuru': (report.processedApplications || 0).toLocaleString('tr-TR'),
+      'Başarı Oranı': `${(((report.processedApplications || 0) / (report.applications || 1)) * 100).toFixed(1)}%`,
+      'En Çok Başvuru Departmanı': report.topDepartments?.[0]?.name || 'Belirtilmemiş',
+      'En Sık Konu': report.applicationTopics?.[0]?.topic || 'Belirtilmemiş',
+      'Ort. İşlem Süresi (Gün)': report.averageProcessingTime || 0,
+      'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
     }));
     
     // Chart'ları print için optimize et
@@ -96,10 +100,16 @@ export const exportSocialMediaReport = async (
   
   if (format === 'pdf') {
     const printData = reports.map(report => ({
-      Ay: formatMonthToTurkish(report.month),
-      Platform: report.platform || '',
-      'Takipçi Sayısı': report.followers || 0,
-      'Yeni Takipçi': report.newFollowers || 0
+      'Ay/Yıl': formatMonthToTurkish(report.month),
+      'Platform': report.platform || '',
+      'Takipçi': (report.followers || 0).toLocaleString('tr-TR'),
+      'İleti': report.posts || 0,
+      'Beğeni': (report.likes || 0).toLocaleString('tr-TR'),
+      'Yorum': report.comments || 0,
+      'Görüntülenme': (report.views || 0).toLocaleString('tr-TR'),
+      'Yeni Takipçi': `+${report.newFollowers || 0}`,
+      'En Çok Etkileşim': (report.topPost?.engagement || 0).toLocaleString('tr-TR'),
+      'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
     }));
     
     optimizeChartsForPrint();
@@ -145,9 +155,17 @@ export const exportNewsReport = async (
   
   if (format === 'pdf') {
     const printData = reports.map(report => ({
-      Ay: formatMonthToTurkish(report.month),
-      'Toplam Haber': (report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0),
-      'Toplam Erişim': (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0)
+      'Ay': formatMonthToTurkish(report.month),
+      'Basın Haber': (report.newsCount?.print || 0).toLocaleString('tr-TR'),
+      'TV Haber': (report.newsCount?.tv || 0).toLocaleString('tr-TR'),
+      'İnternet Haber': (report.newsCount?.internet || 0).toLocaleString('tr-TR'),
+      'Toplam Haber': ((report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0)).toLocaleString('tr-TR'),
+      'Basın Erişim': (report.totalReach?.print || 0).toLocaleString('tr-TR'),
+      'TV Erişim': (report.totalReach?.tv || 0).toLocaleString('tr-TR'),
+      'İnternet Erişim': (report.totalReach?.internet || 0).toLocaleString('tr-TR'),
+      'Toplam Erişim': ((report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0)).toLocaleString('tr-TR'),
+      'Reklam Eşdeğeri (TL)': ((report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0)).toLocaleString('tr-TR'),
+      'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
     }));
     
     optimizeChartsForPrint();
@@ -194,9 +212,16 @@ export const exportWebAnalyticsReport = async (
   
   if (format === 'pdf') {
     const printData = reports.map(report => ({
-      Ay: formatMonthToTurkish(report.month),
-      'Toplam Ziyaretçi': (report.visitors?.website || 0) + (report.visitors?.portal || 0),
-      'Toplam Sayfa Görüntüleme': (report.pageViews?.website || 0) + (report.pageViews?.portal || 0)
+      'Ay': formatMonthToTurkish(report.month),
+      'Web Ziyaretçi': (report.visitors?.website || 0).toLocaleString('tr-TR'),
+      'Portal Ziyaretçi': (report.visitors?.portal || 0).toLocaleString('tr-TR'),
+      'Toplam Ziyaretçi': ((report.visitors?.website || 0) + (report.visitors?.portal || 0)).toLocaleString('tr-TR'),
+      'Web Sayfa Görüntüleme': (report.pageViews?.website || 0).toLocaleString('tr-TR'),
+      'Portal Sayfa Görüntüleme': (report.pageViews?.portal || 0).toLocaleString('tr-TR'),
+      'Toplam Sayfa Görüntüleme': ((report.pageViews?.website || 0) + (report.pageViews?.portal || 0)).toLocaleString('tr-TR'),
+      'Ortalama Oturum (dk)': report.avgSessionDuration || 0,
+      'Geri Dönüş Oranı (%)': `${report.bounceRate || 0}%`,
+      'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
     }));
     
     optimizeChartsForPrint();
