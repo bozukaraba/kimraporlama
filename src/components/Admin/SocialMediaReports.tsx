@@ -22,7 +22,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  IconButton
 } from '@mui/material';
 import { FileDownload, PictureAsPdf, Edit } from '@mui/icons-material';
 import {
