@@ -163,7 +163,20 @@ const CimerReports: React.FC = () => {
       .slice(0, 8);
   };
 
-
+  const handleExport = async (format: 'csv' | 'pdf' | 'ppt') => {
+    try {
+      setExportLoading(format);
+      setExportMenuAnchor(null);
+      
+      await exportCimerReport(filteredReports, format, yearFilter, monthFilter);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      setError(`${format.toUpperCase()} oluşturma hatası`);
+    } finally {
+      setExportLoading('');
+    }
+  };
 
   if (loading) {
     return (
