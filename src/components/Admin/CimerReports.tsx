@@ -18,12 +18,9 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Select,
-  Menu,
-  ListItemIcon,
-  ListItemText
+  Select
 } from '@mui/material';
-import { FileDownload, PictureAsPdf, Slideshow } from '@mui/icons-material';
+import { FileDownload } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
@@ -58,7 +55,6 @@ const CimerReports: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
-  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [exportLoading, setExportLoading] = useState<string>('');
 
   useEffect(() => {
@@ -163,16 +159,15 @@ const CimerReports: React.FC = () => {
       .slice(0, 8);
   };
 
-  const handleExport = async (format: 'csv' | 'pdf' | 'ppt') => {
+  const handleExport = async () => {
     try {
-      setExportLoading(format);
-      setExportMenuAnchor(null);
+      setExportLoading('csv');
       
-      await exportCimerReport(filteredReports, format, yearFilter, monthFilter);
+      await exportCimerReport(filteredReports, 'csv', yearFilter, monthFilter);
       
     } catch (error) {
       console.error('Export error:', error);
-      setError(`${format.toUpperCase()} oluşturma hatası`);
+      setError('CSV oluşturma hatası');
     } finally {
       setExportLoading('');
     }
@@ -248,36 +243,11 @@ const CimerReports: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<FileDownload />}
-            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+            onClick={handleExport}
             disabled={filteredReports.length === 0 || exportLoading !== ''}
           >
-            {exportLoading ? `${exportLoading.toUpperCase()} Hazırlanıyor...` : 'Rapor İndir'}
+            {exportLoading ? 'CSV Hazırlanıyor...' : 'CSV İndir'}
           </Button>
-          
-          <Menu
-            anchorEl={exportMenuAnchor}
-            open={Boolean(exportMenuAnchor)}
-            onClose={() => setExportMenuAnchor(null)}
-          >
-            <MenuItem onClick={() => handleExport('csv')}>
-              <ListItemIcon>
-                <FileDownload fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>CSV İndir</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => handleExport('pdf')}>
-              <ListItemIcon>
-                <PictureAsPdf fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>PDF İndir</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => handleExport('ppt')}>
-              <ListItemIcon>
-                <Slideshow fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>PowerPoint İndir</ListItemText>
-            </MenuItem>
-          </Menu>
         </Box>
       </Box>
 
