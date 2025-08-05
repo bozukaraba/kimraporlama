@@ -18,9 +18,12 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { FileDownload } from '@mui/icons-material';
+import { FileDownload, PictureAsPdf, Slideshow } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
@@ -44,6 +47,7 @@ import {
   filterByYear,
   filterByMonth
 } from '../../utils/dateUtils';
+import { exportCimerReport } from '../../utils/exportUtils';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#A282CA', '#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9'];
 
@@ -54,6 +58,8 @@ const CimerReports: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  const [exportLoading, setExportLoading] = useState<string>('');
 
   useEffect(() => {
     fetchReports();
@@ -157,31 +163,7 @@ const CimerReports: React.FC = () => {
       .slice(0, 8);
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredReports.map(report => ({
-      'Ay': report.month,
-      'Yıl': report.year,
-      'Başvuru Sayısı': report.applications,
-      'İşlem Yapılan': report.processedApplications,
-      'Başarı Oranı (%)': ((report.processedApplications / report.applications) * 100).toFixed(1),
-      'En Çok Başvuru Alan Birimler': (report.topDepartments || []).map(d => `${d?.name || ''}(${d?.rate || 0}%)`).join('; '),
-      'Başvuru Konuları': (report.applicationTopics || []).map(t => `${t?.topic || ''}(${t?.count || 0})`).join('; '),
-      'Oluşturma Tarihi': report.createdAt?.toLocaleDateString('tr-TR')
-    }));
 
-    const csvString = [
-      Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cimer-raporlari-${yearFilter}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
 
   if (loading) {
     return (
@@ -253,11 +235,36 @@ const CimerReports: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<FileDownload />}
-            onClick={exportToCSV}
-            disabled={filteredReports.length === 0}
+            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+            disabled={filteredReports.length === 0 || exportLoading !== ''}
           >
-            CSV İndir
+            {exportLoading ? `${exportLoading.toUpperCase()} Hazırlanıyor...` : 'Rapor İndir'}
           </Button>
+          
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={() => setExportMenuAnchor(null)}
+          >
+            <MenuItem onClick={() => handleExport('csv')}>
+              <ListItemIcon>
+                <FileDownload fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>CSV İndir</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleExport('pdf')}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>PDF İndir</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleExport('ppt')}>
+              <ListItemIcon>
+                <Slideshow fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>PowerPoint İndir</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
 
@@ -270,17 +277,19 @@ const CimerReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Başvuru/Cevaplama Oranları
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={applicationData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="applications" fill="#8884d8" name="Başvuru" />
-                    <Bar dataKey="processedApplications" fill="#82ca9d" name="İşlem Yapılan" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div id="applications-chart">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={applicationData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="applications" fill="#8884d8" name="Başvuru" />
+                      <Bar dataKey="processedApplications" fill="#82ca9d" name="İşlem Yapılan" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
 
@@ -290,25 +299,27 @@ const CimerReports: React.FC = () => {
                   <Typography variant="h6" gutterBottom>
                     En Çok Başvuru Alan Birimler
                   </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={topDepartmentsData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, rate }) => `${name} ${rate.toFixed(1)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="rate"
-                      >
-                        {topDepartmentsData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div id="departments-chart">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={topDepartmentsData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, rate }) => `${name} ${rate.toFixed(1)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="rate"
+                        >
+                          {topDepartmentsData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -320,24 +331,26 @@ const CimerReports: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   En Sık Başvuru Konuları
                 </Typography>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={topTopicsData} layout="vertical" margin={{ left: 20, right: 30, top: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis 
-                      dataKey="topic" 
-                      type="category" 
-                      width={200}
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(value) => value.length > 25 ? value.substring(0, 25) + '...' : value}
-                    />
-                    <Tooltip 
-                      formatter={(value, name) => [value, 'Başvuru Sayısı']}
-                      labelFormatter={(label) => `Konu: ${label}`}
-                    />
-                    <Bar dataKey="count" fill="#ffc658" name="Başvuru Sayısı" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div id="topics-chart">
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={topTopicsData} layout="vertical" margin={{ left: 20, right: 30, top: 5, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis 
+                        dataKey="topic" 
+                        type="category" 
+                        width={200}
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(value) => value.length > 25 ? value.substring(0, 25) + '...' : value}
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => [value, 'Başvuru Sayısı']}
+                        labelFormatter={(label) => `Konu: ${label}`}
+                      />
+                      <Bar dataKey="count" fill="#ffc658" name="Başvuru Sayısı" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           )}
