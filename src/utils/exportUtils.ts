@@ -266,10 +266,15 @@ export const exportRPAReport = async (
   
   if (format === 'pdf') {
     const printData = reports.map(report => ({
-      Ay: formatMonthToTurkish(report.month),
-      'Gelen Mail': report.incomingEmails || 0,
-      'Gönderilen Mail': report.sentEmails || 0,
-      'Toplam Mail': (report.incomingEmails || 0) + (report.sentEmails || 0)
+      'Ay': formatMonthToTurkish(report.month),
+      'Gelen Mail': (report.incomingEmails || 0).toLocaleString('tr-TR'),
+      'Gönderilen Mail': (report.sentEmails || 0).toLocaleString('tr-TR'),
+      'Toplam Mail': ((report.incomingEmails || 0) + (report.sentEmails || 0)).toLocaleString('tr-TR'),
+      'En Çok Mail Alan': (report.topEmailRecipients || [])[0]?.email || 'Belirtilmemiş',
+      'Mail Sayısı': (report.topEmailRecipients || [])[0]?.count || 0,
+      'Ort. Yanıt Süresi (saat)': report.avgResponseTime || 0,
+      'Otomatik İşlem (%)': `${report.automationRate || 0}%`,
+      'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
     }));
     
     optimizeChartsForPrint();
