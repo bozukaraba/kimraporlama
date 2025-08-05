@@ -344,32 +344,32 @@ const SocialMediaReports: React.FC = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" fontWeight="bold" color="primary">
-                        {report.followers.toLocaleString('tr-TR')}
+                        {(report.followers || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2">
-                        {report.posts}
+                        {report.posts || 0}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" color="success.main">
-                        {report.likes.toLocaleString('tr-TR')}
+                        {(report.likes || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2">
-                        {report.comments.toLocaleString('tr-TR')}
+                        {(report.comments || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" fontWeight="bold">
-                        {report.views.toLocaleString('tr-TR')}
+                        {(report.views || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" color="secondary">
-                        +{report.newFollowers.toLocaleString('tr-TR')}
+                        +{(report.newFollowers || 0).toLocaleString('tr-TR')}
                       </Typography>
                     </TableCell>
                     <TableCell>
