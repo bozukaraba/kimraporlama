@@ -13,18 +13,6 @@ export const generatePrintableHTML = (
     return element ? element.outerHTML : '';
   }).filter(html => html !== '');
   
-  // Tablo oluştur
-  const tableRows = data.map(item => {
-    return `
-      <tr>
-        <td style="border: 1px solid #ddd; padding: 8px;">${item.Ay || ''}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item['Başvuru Sayısı'] || 0}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item['İşlenen Başvuru'] || 0}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${item['Başarı Oranı'] || '0%'}</td>
-      </tr>
-    `;
-  }).join('');
-  
   return `
     <!DOCTYPE html>
     <html>
@@ -64,28 +52,13 @@ export const generatePrintableHTML = (
         </div>
         
         ${chartElements.length > 0 ? `
-          <h2>Grafik Görünümler</h2>
+          <h2>Grafik Analizleri</h2>
           ${chartElements.map((chart, index) => `
             <div class="chart-container">
               ${chart}
             </div>
           `).join('')}
         ` : ''}
-        
-        <h2>Detaylı Veriler</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Ay</th>
-              <th>Başvuru Sayısı</th>
-              <th>İşlenen Başvuru</th>
-              <th>Başarı Oranı</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
         
         <script>
           window.onload = function() {
