@@ -91,12 +91,13 @@ const CimerReports: React.FC = () => {
 
   const getApplicationData = () => {
     return filteredReports
+      .filter(report => report && report.month && typeof report.applications === 'number')
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        applications: report.applications,
-        processedApplications: report.processedApplications,
-        successRate: ((report.processedApplications / report.applications) * 100).toFixed(1)
+        applications: report.applications || 0,
+        processedApplications: report.processedApplications || 0,
+        successRate: report.applications > 0 ? ((report.processedApplications / report.applications) * 100).toFixed(1) : '0'
       }));
   };
 
@@ -104,13 +105,17 @@ const CimerReports: React.FC = () => {
     const departmentCount: Record<string, number> = {};
     
     filteredReports.forEach(report => {
-      report.topDepartments.forEach(dept => {
-        departmentCount[dept.name] = (departmentCount[dept.name] || 0) + dept.rate;
-      });
+      if (report && report.topDepartments && Array.isArray(report.topDepartments)) {
+        report.topDepartments.forEach(dept => {
+          if (dept && dept.name && typeof dept.rate === 'number') {
+            departmentCount[dept.name] = (departmentCount[dept.name] || 0) + dept.rate;
+          }
+        });
+      }
     });
 
     return Object.entries(departmentCount)
-      .map(([name, rate]) => ({ name, rate: rate / filteredReports.length }))
+      .map(([name, rate]) => ({ name, rate: filteredReports.length > 0 ? rate / filteredReports.length : 0 }))
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 10);
   };
@@ -119,9 +124,13 @@ const CimerReports: React.FC = () => {
     const topicCount: Record<string, number> = {};
     
     filteredReports.forEach(report => {
-      report.applicationTopics.forEach(topic => {
-        topicCount[topic.topic] = (topicCount[topic.topic] || 0) + topic.count;
-      });
+      if (report && report.applicationTopics && Array.isArray(report.applicationTopics)) {
+        report.applicationTopics.forEach(topic => {
+          if (topic && topic.topic && typeof topic.count === 'number') {
+            topicCount[topic.topic] = (topicCount[topic.topic] || 0) + topic.count;
+          }
+        });
+      }
     });
 
     return Object.entries(topicCount)

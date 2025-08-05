@@ -89,39 +89,41 @@ const NewsReports: React.FC = () => {
     const periodData: { [key: string]: any } = {};
     
     filteredReports.forEach(report => {
-      const periodLabel = report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat';
-      const key = `${report.month}-${periodLabel}`;
-      
-      periodData[key] = {
-        month: report.month,
-        period: periodLabel,
-        print: report.newsCount.print,
-        tv: report.newsCount.tv,
-        internet: report.newsCount.internet,
-        total: report.newsCount.print + report.newsCount.tv + report.newsCount.internet
-      };
+      if (report && report.month && report.newsCount) {
+        const periodLabel = report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat';
+        const key = `${report.month}-${periodLabel}`;
+        
+        periodData[key] = {
+          month: report.month,
+          period: periodLabel,
+          print: report.newsCount?.print || 0,
+          tv: report.newsCount?.tv || 0,
+          internet: report.newsCount?.internet || 0,
+          total: (report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0)
+        };
+      }
     });
     
     return Object.values(periodData).sort((a: any, b: any) => a.month.localeCompare(b.month));
   };
 
   const getAdEquivalentData = () => {
-    return filteredReports.map(report => ({
+    return filteredReports.filter(report => report && report.month && report.adEquivalent).map(report => ({
       month: report.month,
-      print: report.adEquivalent.print,
-      tv: report.adEquivalent.tv,
-      internet: report.adEquivalent.internet,
-      total: report.adEquivalent.print + report.adEquivalent.tv + report.adEquivalent.internet
+      print: report.adEquivalent?.print || 0,
+      tv: report.adEquivalent?.tv || 0,
+      internet: report.adEquivalent?.internet || 0,
+      total: (report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0)
     })).sort((a, b) => a.month.localeCompare(b.month));
   };
 
   const getTotalReachData = () => {
-    return filteredReports.map(report => ({
+    return filteredReports.filter(report => report && report.month && report.totalReach).map(report => ({
       month: report.month,
-      print: report.totalReach.print,
-      tv: report.totalReach.tv,
-      internet: report.totalReach.internet,
-      total: report.totalReach.print + report.totalReach.tv + report.totalReach.internet
+      print: report.totalReach?.print || 0,
+      tv: report.totalReach?.tv || 0,
+      internet: report.totalReach?.internet || 0,
+      total: (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0)
     })).sort((a, b) => a.month.localeCompare(b.month));
   };
 

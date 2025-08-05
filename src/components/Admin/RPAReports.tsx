@@ -91,11 +91,12 @@ const RPAReports: React.FC = () => {
 
   const getEmailData = () => {
     return filteredReports
+      .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        incomingEmails: report.incomingEmails,
-        sentEmails: report.sentEmails
+        incomingEmails: report.incomingEmails || 0,
+        sentEmails: report.sentEmails || 0
       }));
   };
 
@@ -103,15 +104,19 @@ const RPAReports: React.FC = () => {
     const emailCount: Record<string, number> = {};
     
     filteredReports.forEach(report => {
-      report.topEmailRecipients.forEach(recipient => {
-        emailCount[recipient.email] = (emailCount[recipient.email] || 0) + recipient.count;
-      });
+      if (report && report.topEmailRecipients && Array.isArray(report.topEmailRecipients)) {
+        report.topEmailRecipients.forEach(recipient => {
+          if (recipient && recipient.email && typeof recipient.count === 'number') {
+            emailCount[recipient.email] = (emailCount[recipient.email] || 0) + recipient.count;
+          }
+        });
+      }
     });
 
     return Object.entries(emailCount)
       .map(([email, count]) => ({ email, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // En çok mail alan 10 adres
+      .slice(0, 10);
   };
 
   const exportToCSV = () => {

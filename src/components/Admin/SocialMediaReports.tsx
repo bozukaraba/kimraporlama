@@ -100,26 +100,28 @@ const SocialMediaReports: React.FC = () => {
 
   const getChartData = () => {
     return filteredReports
+      .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        platform: report.platform,
-        followers: report.followers,
-        posts: report.posts,
-        likes: report.likes,
-        comments: report.comments,
-        views: report.views,
-        newFollowers: report.newFollowers
+        platform: report.platform || '',
+        followers: report.followers || 0,
+        posts: report.posts || 0,
+        likes: report.likes || 0,
+        comments: report.comments || 0,
+        views: report.views || 0,
+        newFollowers: report.newFollowers || 0
       }));
   };
 
   const getEngagementData = () => {
     return filteredReports
+      .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        platform: report.platform,
-        totalEngagement: report.likes + report.comments + (report.shares || 0) + (report.retweets || 0)
+        platform: report.platform || '',
+        totalEngagement: (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0)
       }));
   };
 

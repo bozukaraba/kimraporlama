@@ -86,13 +86,14 @@ const WebAnalyticsReports: React.FC = () => {
 
   const getChartData = () => {
     return filteredReports
+      .filter(report => report && report.month && report.visitors && report.pageViews)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
         month: report.month,
-        websiteVisitors: report.visitors.website,
-        portalVisitors: report.visitors.portal,
-        websitePageViews: report.pageViews.website,
-        portalPageViews: report.pageViews.portal
+        websiteVisitors: report.visitors?.website || 0,
+        portalVisitors: report.visitors?.portal || 0,
+        websitePageViews: report.pageViews?.website || 0,
+        portalPageViews: report.pageViews?.portal || 0
       }));
   };
 
