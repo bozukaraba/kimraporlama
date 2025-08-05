@@ -56,19 +56,21 @@ const CimerReports: React.FC = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
+      setError('');
       const q = query(collection(db, 'cimerReports'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       
-      const reportsData = querySnapshot.docs.map(doc => ({
+      const reportsData = querySnapshot.docs?.map(doc => ({
         ...doc.data(),
         id: doc.id,
         createdAt: doc.data().createdAt?.toDate() || new Date()
-      })) as CimerReport[];
+      })) as CimerReport[] || [];
 
-      setReports(reportsData);
+      setReports(reportsData || []);
     } catch (error) {
       console.error('Error fetching cimer reports:', error);
       setError('CİMER raporlarını yüklerken hata oluştu.');
+      setReports([]);
     } finally {
       setLoading(false);
     }

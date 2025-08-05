@@ -54,19 +54,21 @@ const SocialMediaReports: React.FC = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
+      setError('');
       const q = query(collection(db, 'socialMediaReports'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       
-      const reportsData = querySnapshot.docs.map(doc => ({
+      const reportsData = querySnapshot.docs?.map(doc => ({
         ...doc.data(),
         id: doc.id,
         createdAt: doc.data().createdAt?.toDate() || new Date()
-      })) as SocialMediaReport[];
+      })) as SocialMediaReport[] || [];
 
-      setReports(reportsData);
+      setReports(reportsData || []);
     } catch (error) {
       console.error('Error fetching social media reports:', error);
       setError('Sosyal medya raporlarını yüklerken hata oluştu.');
+      setReports([]);
     } finally {
       setLoading(false);
     }

@@ -49,55 +49,11 @@ function TabPanel(props: TabPanelProps) {
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
+          {children}
         </Box>
       )}
     </div>
   );
-}
-
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Admin panel error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <Box display="flex" justifyContent="center" alignItems="center" height="400px" flexDirection="column">
-          <Typography variant="h6" color="error" gutterBottom>
-            Bu sekmede bir hata oluştu
-          </Typography>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {this.state.error?.message || 'Bilinmeyen hata'}
-          </Typography>
-          <Button 
-            variant="contained" 
-            onClick={() => window.location.reload()}
-            sx={{ mt: 2 }}
-          >
-            Sayfayı Yenile
-          </Button>
-        </Box>
-      );
-    }
-
-    return this.props.children;
-  }
 }
 
 const AdminPanel: React.FC = () => {

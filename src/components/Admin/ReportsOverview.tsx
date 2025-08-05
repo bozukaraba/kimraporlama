@@ -68,116 +68,135 @@ const ReportsOverview: React.FC = () => {
   const fetchReportSummary = async () => {
     try {
       setLoading(true);
+      setError('');
       
-      // Her rapor türü için sayıları al
-      const [socialMediaSnapshot, newsSnapshot, webAnalyticsSnapshot, cimerSnapshot, rpaSnapshot] = await Promise.all([
-        getDocs(collection(db, 'socialMediaReports')),
-        getDocs(collection(db, 'newsReports')),
-        getDocs(collection(db, 'webAnalyticsReports')),
-        getDocs(collection(db, 'cimerReports')),
-        getDocs(collection(db, 'rpaReports'))
-      ]);
+      // Basit ve güvenli veri çekme
+      const socialMediaSnapshot = await getDocs(collection(db, 'socialMediaReports')).catch(() => ({ size: 0, docs: [] }));
+      const newsSnapshot = await getDocs(collection(db, 'newsReports')).catch(() => ({ size: 0, docs: [] }));
+      const webAnalyticsSnapshot = await getDocs(collection(db, 'webAnalyticsReports')).catch(() => ({ size: 0, docs: [] }));
+      const cimerSnapshot = await getDocs(collection(db, 'cimerReports')).catch(() => ({ size: 0, docs: [] }));
+      const rpaSnapshot = await getDocs(collection(db, 'rpaReports')).catch(() => ({ size: 0, docs: [] }));
 
       const summary = {
-        socialMedia: socialMediaSnapshot.size,
-        news: newsSnapshot.size,
-        webAnalytics: webAnalyticsSnapshot.size,
-        cimer: cimerSnapshot.size,
-        rpa: rpaSnapshot.size
+        socialMedia: socialMediaSnapshot.size || 0,
+        news: newsSnapshot.size || 0,
+        webAnalytics: webAnalyticsSnapshot.size || 0,
+        cimer: cimerSnapshot.size || 0,
+        rpa: rpaSnapshot.size || 0
       };
 
       setReportSummary(summary);
 
-      // Aylık veri için son 6 ay
+      // Basit aylık veri toplama
       const monthlyStats: { [key: string]: MonthlyData } = {};
       
-      socialMediaSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const monthKey = data.month;
-        if (!monthlyStats[monthKey]) {
-          monthlyStats[monthKey] = {
-            month: monthKey,
-            socialMedia: 0,
-            news: 0,
-            webAnalytics: 0,
-            cimer: 0,
-            rpa: 0
-          };
-        }
-        monthlyStats[monthKey].socialMedia++;
-      });
+      // Güvenli forEach işlemleri
+      if (socialMediaSnapshot.docs && socialMediaSnapshot.docs.length > 0) {
+        socialMediaSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data && data.month) {
+            const monthKey = data.month;
+            if (!monthlyStats[monthKey]) {
+              monthlyStats[monthKey] = {
+                month: monthKey,
+                socialMedia: 0,
+                news: 0,
+                webAnalytics: 0,
+                cimer: 0,
+                rpa: 0
+              };
+            }
+            monthlyStats[monthKey].socialMedia++;
+          }
+        });
+      }
 
-      newsSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const monthKey = data.month;
-        if (!monthlyStats[monthKey]) {
-          monthlyStats[monthKey] = {
-            month: monthKey,
-            socialMedia: 0,
-            news: 0,
-            webAnalytics: 0,
-            cimer: 0,
-            rpa: 0
-          };
-        }
-        monthlyStats[monthKey].news++;
-      });
+      if (newsSnapshot.docs && newsSnapshot.docs.length > 0) {
+        newsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data && data.month) {
+            const monthKey = data.month;
+            if (!monthlyStats[monthKey]) {
+              monthlyStats[monthKey] = {
+                month: monthKey,
+                socialMedia: 0,
+                news: 0,
+                webAnalytics: 0,
+                cimer: 0,
+                rpa: 0
+              };
+            }
+            monthlyStats[monthKey].news++;
+          }
+        });
+      }
 
-      webAnalyticsSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const monthKey = data.month;
-        if (!monthlyStats[monthKey]) {
-          monthlyStats[monthKey] = {
-            month: monthKey,
-            socialMedia: 0,
-            news: 0,
-            webAnalytics: 0,
-            cimer: 0,
-            rpa: 0
-          };
-        }
-        monthlyStats[monthKey].webAnalytics++;
-      });
+      if (webAnalyticsSnapshot.docs && webAnalyticsSnapshot.docs.length > 0) {
+        webAnalyticsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data && data.month) {
+            const monthKey = data.month;
+            if (!monthlyStats[monthKey]) {
+              monthlyStats[monthKey] = {
+                month: monthKey,
+                socialMedia: 0,
+                news: 0,
+                webAnalytics: 0,
+                cimer: 0,
+                rpa: 0
+              };
+            }
+            monthlyStats[monthKey].webAnalytics++;
+          }
+        });
+      }
 
-      rpaSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const monthKey = data.month;
-        if (!monthlyStats[monthKey]) {
-          monthlyStats[monthKey] = {
-            month: monthKey,
-            socialMedia: 0,
-            news: 0,
-            webAnalytics: 0,
-            cimer: 0,
-            rpa: 0
-          };
-        }
-        monthlyStats[monthKey].rpa++;
-      });
+      if (cimerSnapshot.docs && cimerSnapshot.docs.length > 0) {
+        cimerSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data && data.month) {
+            const monthKey = data.month;
+            if (!monthlyStats[monthKey]) {
+              monthlyStats[monthKey] = {
+                month: monthKey,
+                socialMedia: 0,
+                news: 0,
+                webAnalytics: 0,
+                cimer: 0,
+                rpa: 0
+              };
+            }
+            monthlyStats[monthKey].cimer++;
+          }
+        });
+      }
 
-      cimerSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const monthKey = data.month;
-        if (!monthlyStats[monthKey]) {
-          monthlyStats[monthKey] = {
-            month: monthKey,
-            socialMedia: 0,
-            news: 0,
-            webAnalytics: 0,
-            cimer: 0,
-            rpa: 0
-          };
-        }
-        monthlyStats[monthKey].cimer++;
-      });
+      if (rpaSnapshot.docs && rpaSnapshot.docs.length > 0) {
+        rpaSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data && data.month) {
+            const monthKey = data.month;
+            if (!monthlyStats[monthKey]) {
+              monthlyStats[monthKey] = {
+                month: monthKey,
+                socialMedia: 0,
+                news: 0,
+                webAnalytics: 0,
+                cimer: 0,
+                rpa: 0
+              };
+            }
+            monthlyStats[monthKey].rpa++;
+          }
+        });
+      }
 
       const sortedMonthlyData = Object.values(monthlyStats)
         .sort((a, b) => a.month.localeCompare(b.month))
-        .slice(-6); // Son 6 ay
+        .slice(-6);
 
       setMonthlyData(sortedMonthlyData);
 
-      // Son ay bilgisi
       if (sortedMonthlyData.length > 0) {
         const lastMonthData = sortedMonthlyData[sortedMonthlyData.length - 1];
         setLastMonth(lastMonthData.month);
@@ -185,7 +204,7 @@ const ReportsOverview: React.FC = () => {
 
     } catch (error) {
       console.error('Error fetching report summary:', error);
-      setError('Rapor verilerini yüklerken hata oluştu. Lütfen sayfayı yenileyin.');
+      setError('Rapor verilerini yüklerken hata oluştu.');
     } finally {
       setLoading(false);
     }
