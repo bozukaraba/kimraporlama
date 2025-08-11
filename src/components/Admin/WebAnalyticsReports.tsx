@@ -42,6 +42,7 @@ const WebAnalyticsReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const [exportLoading, setExportLoading] = useState<string>('');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
 
@@ -52,7 +53,7 @@ const WebAnalyticsReports: React.FC = () => {
   useEffect(() => {
     filterReports();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reports, yearFilter]);
+  }, [reports, yearFilter, monthFilter]);
 
   const fetchReports = async () => {
     try {
@@ -78,16 +79,40 @@ const WebAnalyticsReports: React.FC = () => {
   };
 
   const filterReports = () => {
-    if (yearFilter === 'all') {
-      setFilteredReports(reports);
-    } else {
-      setFilteredReports(reports.filter(report => report.year.toString() === yearFilter));
+    let filtered = reports;
+    
+    if (yearFilter !== 'all') {
+      filtered = filtered.filter(report => report.year.toString() === yearFilter);
     }
+    
+    if (monthFilter !== 'all') {
+      filtered = filtered.filter(report => report.month === monthFilter);
+    }
+    
+    setFilteredReports(filtered);
   };
 
   const getAvailableYears = () => {
     const years = Array.from(new Set(reports.map(report => report.year)));
     return years.sort((a, b) => b - a);
+  };
+
+  const getAvailableMonths = () => {
+    let reportsToCheck = reports;
+    
+    if (yearFilter !== 'all') {
+      reportsToCheck = reports.filter(report => report.year.toString() === yearFilter);
+    }
+    
+    const months = Array.from(new Set(reportsToCheck.map(report => report.month)));
+    
+    // Ay isimlerini sıralama için map kullan
+    const monthOrder = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+    
+    return months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
   };
 
   const getChartData = () => {
@@ -108,7 +133,7 @@ const WebAnalyticsReports: React.FC = () => {
       setExportLoading(format);
       setExportMenuAnchor(null);
       
-      await exportWebAnalyticsReport(filteredReports, format, yearFilter, 'all');
+      await exportWebAnalyticsReport(filteredReports, format, yearFilter, monthFilter);
       
     } catch (error) {
       console.error('Export error:', error);
@@ -153,13 +178,31 @@ const WebAnalyticsReports: React.FC = () => {
             select
             label="Yıl Filtresi"
             value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
+            onChange={(e) => {
+              setYearFilter(e.target.value);
+              setMonthFilter('all'); // Yıl değiştiğinde ay filtresini sıfırla
+            }}
             size="small"
             sx={{ minWidth: 120 }}
           >
             <MenuItem value="all">Tümü</MenuItem>
             {getAvailableYears().map(year => (
               <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
+            ))}
+          </TextField>
+          
+          <TextField
+            select
+            label="Ay Filtresi"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            size="small"
+            sx={{ minWidth: 120 }}
+            disabled={getAvailableMonths().length === 0}
+          >
+            <MenuItem value="all">Tümü</MenuItem>
+            {getAvailableMonths().map(month => (
+              <MenuItem key={month} value={month}>{month}</MenuItem>
             ))}
           </TextField>
           
@@ -325,9 +368,9 @@ const WebAnalyticsReports: React.FC = () => {
           {filteredReports.length === 0 && (
             <Box textAlign="center" py={4}>
               <Typography variant="body1" color="text.secondary">
-                {yearFilter === 'all' 
+                {yearFilter === 'all' && monthFilter === 'all'
                   ? 'Henüz web analitik raporu bulunmuyor.' 
-                  : `${yearFilter} yılı için rapor bulunamadı.`
+                  : `${yearFilter !== 'all' ? yearFilter + ' yılı' : 'Tüm yıllar'} ${monthFilter !== 'all' ? monthFilter + ' ayı' : ''} için rapor bulunamadı.`
                 }
               </Typography>
             </Box>
