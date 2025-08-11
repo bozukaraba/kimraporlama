@@ -42,6 +42,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { SocialMediaReport } from '../../types';
 import { exportSocialMediaReport } from '../../utils/exportUtils';
+import { formatMonthToTurkish } from '../../utils/dateUtils';
 
 const SocialMediaReports: React.FC = () => {
   const [reports, setReports] = useState<SocialMediaReport[]>([]);
@@ -150,7 +151,8 @@ const SocialMediaReports: React.FC = () => {
       .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
-        month: report.month,
+        month: formatMonthToTurkish(report.month),
+        monthOriginal: report.month,
         platform: report.platform || '',
         followers: report.followers || 0,
         posts: report.posts || 0,
@@ -166,7 +168,8 @@ const SocialMediaReports: React.FC = () => {
       .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
-        month: report.month,
+        month: formatMonthToTurkish(report.month),
+        monthOriginal: report.month,
         platform: report.platform || '',
         totalEngagement: (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0)
       }));
@@ -468,7 +471,7 @@ const SocialMediaReports: React.FC = () => {
                   <TableRow key={report.id} hover>
                     <TableCell>
                       <Chip 
-                        label={`${report.month}`}
+                        label={formatMonthToTurkish(report.month)}
                         color="primary"
                         size="small"
                       />

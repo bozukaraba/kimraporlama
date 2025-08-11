@@ -35,6 +35,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { WebAnalyticsReport } from '../../types';
 import { exportWebAnalyticsReport } from '../../utils/exportUtils';
+import { formatMonthToTurkish } from '../../utils/dateUtils';
 
 const WebAnalyticsReports: React.FC = () => {
   const [reports, setReports] = useState<WebAnalyticsReport[]>([]);
@@ -120,7 +121,8 @@ const WebAnalyticsReports: React.FC = () => {
       .filter(report => report && report.month && report.visitors && report.pageViews)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
-        month: report.month,
+        month: formatMonthToTurkish(report.month),
+        monthOriginal: report.month,
         websiteVisitors: report.visitors?.website || 0,
         portalVisitors: report.visitors?.portal || 0,
         websitePageViews: report.pageViews?.website || 0,
@@ -306,7 +308,7 @@ const WebAnalyticsReports: React.FC = () => {
                   <TableRow key={report.id} hover>
                     <TableCell>
                       <Chip 
-                        label={`${report.month}`}
+                        label={formatMonthToTurkish(report.month)}
                         color="primary"
                         size="small"
                       />

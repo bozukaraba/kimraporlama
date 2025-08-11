@@ -38,6 +38,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { RPAReport } from '../../types';
 import { exportRPAReport } from '../../utils/exportUtils';
+import { formatMonthToTurkish } from '../../utils/dateUtils';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -124,7 +125,8 @@ const RPAReports: React.FC = () => {
       .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(report => ({
-        month: report.month,
+        month: formatMonthToTurkish(report.month),
+        monthOriginal: report.month,
         incomingEmails: report.incomingEmails || 0,
         sentEmails: report.sentEmails || 0
       }));
@@ -348,7 +350,7 @@ const RPAReports: React.FC = () => {
                   <TableRow key={report.id} hover>
                     <TableCell>
                       <Chip 
-                        label={`${report.month}`}
+                        label={formatMonthToTurkish(report.month)}
                         color="primary"
                         size="small"
                       />

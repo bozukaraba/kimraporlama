@@ -37,6 +37,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { NewsReport } from '../../types';
 import { exportNewsReport } from '../../utils/exportUtils';
+import { formatMonthToTurkish } from '../../utils/dateUtils';
 
 const NewsReports: React.FC = () => {
   const [reports, setReports] = useState<NewsReport[]>([]);
@@ -123,7 +124,8 @@ const NewsReports: React.FC = () => {
       if (report && report.month && report.newsCount) {
         if (!monthData[report.month]) {
           monthData[report.month] = {
-            month: report.month,
+            month: formatMonthToTurkish(report.month),
+            monthOriginal: report.month,
             print: 0,
             tv: 0,
             internet: 0,
@@ -149,7 +151,8 @@ const NewsReports: React.FC = () => {
       if (report && report.month && report.adEquivalent) {
         if (!monthData[report.month]) {
           monthData[report.month] = {
-            month: report.month,
+            month: formatMonthToTurkish(report.month),
+            monthOriginal: report.month,
             print: 0,
             tv: 0,
             internet: 0,
@@ -174,7 +177,8 @@ const NewsReports: React.FC = () => {
       if (report && report.month && report.totalReach) {
         if (!monthData[report.month]) {
           monthData[report.month] = {
-            month: report.month,
+            month: formatMonthToTurkish(report.month),
+            monthOriginal: report.month,
             print: 0,
             tv: 0,
             internet: 0,
@@ -397,7 +401,7 @@ const NewsReports: React.FC = () => {
                   <TableRow key={report.id} hover>
                     <TableCell>
                       <Chip 
-                        label={`${report.month}`}
+                        label={formatMonthToTurkish(report.month)}
                         color="primary"
                         size="small"
                       />
