@@ -80,8 +80,21 @@ const Dashboard: React.FC = () => {
           matches = false;
         }
         
-        if (selectedMonth !== 'all' && data.month !== selectedMonth) {
-          matches = false;
+        if (selectedMonth !== 'all') {
+          // Firebase'de ay format: "2025-07", seçilen format: "Temmuz"
+          // Ay dönüşümü yap
+          const monthMap = {
+            'Ocak': '01', 'Şubat': '02', 'Mart': '03', 'Nisan': '04',
+            'Mayıs': '05', 'Haziran': '06', 'Temmuz': '07', 'Ağustos': '08',
+            'Eylül': '09', 'Ekim': '10', 'Kasım': '11', 'Aralık': '12'
+          };
+          
+          const selectedMonthNumber = monthMap[selectedMonth as keyof typeof monthMap];
+          const dataMonthNumber = data.month?.split('-')[1]; // "2025-07" -> "07"
+          
+          if (selectedMonthNumber !== dataMonthNumber) {
+            matches = false;
+          }
         }
         
         // Debug için log ekle

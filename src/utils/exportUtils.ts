@@ -314,8 +314,20 @@ export const exportAllReports = async (
         matches = false;
       }
       
-      if (monthFilter !== 'all' && data.month !== monthFilter) {
-        matches = false;
+      if (monthFilter !== 'all') {
+        // Firebase'de ay format: "2025-07", seçilen format: "Temmuz" 
+        const monthMap = {
+          'Ocak': '01', 'Şubat': '02', 'Mart': '03', 'Nisan': '04',
+          'Mayıs': '05', 'Haziran': '06', 'Temmuz': '07', 'Ağustos': '08',
+          'Eylül': '09', 'Ekim': '10', 'Kasım': '11', 'Aralık': '12'
+        };
+        
+        const selectedMonthNumber = monthMap[monthFilter as keyof typeof monthMap];
+        const dataMonthNumber = data.month?.split('-')[1]; // "2025-07" -> "07"
+        
+        if (selectedMonthNumber !== dataMonthNumber) {
+          matches = false;
+        }
       }
       
       return matches;
@@ -398,11 +410,22 @@ export const exportAllReports = async (
       // PDF için detaylı raporların birleştirilmiş versiyonu
       let allData: any[] = [];
       
+      // Debug için veri sayılarını logla
+      console.log('PDF Export Data:', {
+        cimerReports: cimerReports.length,
+        webReports: webReports.length, 
+        socialReports: socialReports.length,
+        rpaReports: rpaReports.length,
+        newsReports: newsReports.length,
+        yearFilter,
+        monthFilter
+      });
+      
       // CİMER Raporları
       if (cimerReports.length > 0) {
-        allData.push({ title: 'CİMER RAPORLARI', isHeader: true });
         cimerReports.forEach(report => {
           allData.push({
+            'Rapor Türü': 'CİMER',
             'Ay': formatMonthToTurkish(report.month),
             'Başvuru Sayısı': (report.applications || 0).toLocaleString('tr-TR'),
             'İşlenen Başvuru': (report.processedApplications || 0).toLocaleString('tr-TR'),
@@ -411,14 +434,13 @@ export const exportAllReports = async (
             'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
           });
         });
-        allData.push({ separator: true });
       }
 
       // Web Analitik Raporları
       if (webReports.length > 0) {
-        allData.push({ title: 'WEB ANALİTİK RAPORLARI', isHeader: true });
         webReports.forEach(report => {
           allData.push({
+            'Rapor Türü': 'Web Analitik',
             'Ay': formatMonthToTurkish(report.month),
             'Web Sitesi Ziyaretçi': (report.visitors?.website || 0).toLocaleString('tr-TR'),
             'Portal Ziyaretçi': (report.visitors?.portal || 0).toLocaleString('tr-TR'),
@@ -427,14 +449,13 @@ export const exportAllReports = async (
             'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
           });
         });
-        allData.push({ separator: true });
       }
 
       // Sosyal Medya Raporları
       if (socialReports.length > 0) {
-        allData.push({ title: 'SOSYAL MEDYA RAPORLARI', isHeader: true });
         socialReports.forEach(report => {
           allData.push({
+            'Rapor Türü': 'Sosyal Medya',
             'Ay': formatMonthToTurkish(report.month),
             'Platform': report.platform,
             'Takipçi': (report.followers || 0).toLocaleString('tr-TR'),
@@ -444,14 +465,13 @@ export const exportAllReports = async (
             'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
           });
         });
-        allData.push({ separator: true });
       }
 
       // RPA Raporları
       if (rpaReports.length > 0) {
-        allData.push({ title: 'RPA RAPORLARI', isHeader: true });
         rpaReports.forEach(report => {
           allData.push({
+            'Rapor Türü': 'RPA',
             'Ay': formatMonthToTurkish(report.month),
             'Gelen Mail': (report.incomingEmails || 0).toLocaleString('tr-TR'),
             'İletilen Mail': (report.sentEmails || 0).toLocaleString('tr-TR'),
@@ -459,16 +479,15 @@ export const exportAllReports = async (
             'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
           });
         });
-        allData.push({ separator: true });
       }
 
       // Haber Raporları
       if (newsReports.length > 0) {
-        allData.push({ title: 'HABER RAPORLARI', isHeader: true });
         newsReports.forEach(report => {
           const totalAdEquivalent = (report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0);
           const totalReach = (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0);
           allData.push({
+            'Rapor Türü': 'Haber',
             'Ay': formatMonthToTurkish(report.month),
             'İçerik': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
             'Basın Haber': (report.newsCount?.print || 0).toLocaleString('tr-TR'),
