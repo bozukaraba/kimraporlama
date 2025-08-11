@@ -395,41 +395,92 @@ export const exportAllReports = async (
     }
 
     if (format === 'pdf') {
-      // PDF için özet istatistik tablosu oluştur
-      const summaryData = [
-        {
-          'Rapor Türü': 'CİMER',
-          'Toplam Kayıt': cimerReports.length,
-          'Toplam Başvuru': cimerReports.reduce((sum, report) => sum + (report.applications || 0), 0).toLocaleString('tr-TR'),
-          'Toplam İşlenen': cimerReports.reduce((sum, report) => sum + (report.processedApplications || 0), 0).toLocaleString('tr-TR')
-        },
-        {
-          'Rapor Türü': 'Web Analitik',
-          'Toplam Kayıt': webReports.length,
-          'Toplam Web Ziyaretçi': webReports.reduce((sum, report) => sum + (report.visitors?.website || 0), 0).toLocaleString('tr-TR'),
-          'Toplam Portal Ziyaretçi': webReports.reduce((sum, report) => sum + (report.visitors?.portal || 0), 0).toLocaleString('tr-TR')
-        },
-        {
-          'Rapor Türü': 'Sosyal Medya',
-          'Toplam Kayıt': socialReports.length,
-          'Toplam Takipçi': socialReports.reduce((sum, report) => sum + (report.followers || 0), 0).toLocaleString('tr-TR'),
-          'Toplam Beğeni': socialReports.reduce((sum, report) => sum + (report.likes || 0), 0).toLocaleString('tr-TR')
-        },
-        {
-          'Rapor Türü': 'RPA',
-          'Toplam Kayıt': rpaReports.length,
-          'Toplam Gelen Mail': rpaReports.reduce((sum, report) => sum + (report.incomingEmails || 0), 0).toLocaleString('tr-TR'),
-          'Toplam İletilen Mail': rpaReports.reduce((sum, report) => sum + (report.sentEmails || 0), 0).toLocaleString('tr-TR')
-        },
-        {
-          'Rapor Türü': 'Haber',
-          'Toplam Kayıt': newsReports.length,
-          'Toplam Haber': newsReports.reduce((sum, report) => sum + (report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0), 0).toLocaleString('tr-TR'),
-          'Toplam Erişim': newsReports.reduce((sum, report) => sum + (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0), 0).toLocaleString('tr-TR')
-        }
-      ];
+      // PDF için detaylı raporların birleştirilmiş versiyonu
+      let allData: any[] = [];
+      
+      // CİMER Raporları
+      if (cimerReports.length > 0) {
+        allData.push({ title: 'CİMER RAPORLARI', isHeader: true });
+        cimerReports.forEach(report => {
+          allData.push({
+            'Ay': formatMonthToTurkish(report.month),
+            'Başvuru Sayısı': (report.applications || 0).toLocaleString('tr-TR'),
+            'İşlenen Başvuru': (report.processedApplications || 0).toLocaleString('tr-TR'),
+            'Başarı Oranı': `${(((report.processedApplications || 0) / (report.applications || 1)) * 100).toFixed(1)}%`,
+            'En Çok Başvuru Departmanı': report.topDepartments?.[0]?.name || 'Belirtilmemiş',
+            'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
+          });
+        });
+        allData.push({ separator: true });
+      }
 
-      await printToPDF(title, summaryData, []);
+      // Web Analitik Raporları
+      if (webReports.length > 0) {
+        allData.push({ title: 'WEB ANALİTİK RAPORLARI', isHeader: true });
+        webReports.forEach(report => {
+          allData.push({
+            'Ay': formatMonthToTurkish(report.month),
+            'Web Sitesi Ziyaretçi': (report.visitors?.website || 0).toLocaleString('tr-TR'),
+            'Portal Ziyaretçi': (report.visitors?.portal || 0).toLocaleString('tr-TR'),
+            'Web Sitesi Sayfa Görüntüleme': (report.pageViews?.website || 0).toLocaleString('tr-TR'),
+            'Portal Sayfa Görüntüleme': (report.pageViews?.portal || 0).toLocaleString('tr-TR'),
+            'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
+          });
+        });
+        allData.push({ separator: true });
+      }
+
+      // Sosyal Medya Raporları
+      if (socialReports.length > 0) {
+        allData.push({ title: 'SOSYAL MEDYA RAPORLARI', isHeader: true });
+        socialReports.forEach(report => {
+          allData.push({
+            'Ay': formatMonthToTurkish(report.month),
+            'Platform': report.platform,
+            'Takipçi': (report.followers || 0).toLocaleString('tr-TR'),
+            'İleti': (report.posts || 0).toLocaleString('tr-TR'),
+            'Beğeni': (report.likes || 0).toLocaleString('tr-TR'),
+            'Görüntülenme': (report.views || 0).toLocaleString('tr-TR'),
+            'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
+          });
+        });
+        allData.push({ separator: true });
+      }
+
+      // RPA Raporları
+      if (rpaReports.length > 0) {
+        allData.push({ title: 'RPA RAPORLARI', isHeader: true });
+        rpaReports.forEach(report => {
+          allData.push({
+            'Ay': formatMonthToTurkish(report.month),
+            'Gelen Mail': (report.incomingEmails || 0).toLocaleString('tr-TR'),
+            'İletilen Mail': (report.sentEmails || 0).toLocaleString('tr-TR'),
+            'En Çok Mail Alan Adres': report.topEmailRecipients?.[0]?.email || 'Belirtilmemiş',
+            'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
+          });
+        });
+        allData.push({ separator: true });
+      }
+
+      // Haber Raporları
+      if (newsReports.length > 0) {
+        allData.push({ title: 'HABER RAPORLARI', isHeader: true });
+        newsReports.forEach(report => {
+          const totalAdEquivalent = (report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0);
+          const totalReach = (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0);
+          allData.push({
+            'Ay': formatMonthToTurkish(report.month),
+            'İçerik': report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat',
+            'Basın Haber': (report.newsCount?.print || 0).toLocaleString('tr-TR'),
+            'TV Haber': (report.newsCount?.tv || 0).toLocaleString('tr-TR'),
+            'İnternet Haber': (report.newsCount?.internet || 0).toLocaleString('tr-TR'),
+            'Toplam Reklam Eşdeğeri': totalAdEquivalent.toLocaleString('tr-TR'),
+            'Tarih': new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt || Date.now()).toLocaleDateString('tr-TR')
+          });
+        });
+      }
+
+      await printToPDF(title, allData, []);
       return;
     }
   } catch (error) {

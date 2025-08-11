@@ -84,6 +84,11 @@ const Dashboard: React.FC = () => {
           matches = false;
         }
         
+        // Debug için log ekle
+        if (selectedMonth !== 'all') {
+          console.log('Filter:', { selectedMonth, dataMonth: data.month, matches });
+        }
+        
         return matches;
       };
 
@@ -93,6 +98,24 @@ const Dashboard: React.FC = () => {
       const socialData = socialSnapshot.docs.filter(filterReport).map(doc => doc.data());
       const rpaData = rpaSnapshot.docs.filter(filterReport).map(doc => doc.data());
       const newsData = newsSnapshot.docs.filter(filterReport).map(doc => doc.data());
+
+      // Debug için tüm dataları log et
+      console.log('Dashboard filter results:', {
+        selectedYear,
+        selectedMonth,
+        cimerData: cimerData.length,
+        webData: webData.length,
+        socialData: socialData.length,
+        rpaData: rpaData.length,
+        newsData: newsData.length,
+        allData: {
+          cimer: cimerData,
+          web: webData,
+          social: socialData,
+          rpa: rpaData,
+          news: newsData
+        }
+      });
 
       const totalCimerApplications = cimerData.reduce((sum, report) => sum + (report.applications || 0), 0);
       const totalWebVisitors = webData.reduce((sum, report) => 
