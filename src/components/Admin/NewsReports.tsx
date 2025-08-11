@@ -28,6 +28,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   LineChart,
   Line
@@ -116,45 +117,79 @@ const NewsReports: React.FC = () => {
   };
 
   const getNewsCountData = () => {
-    const periodData: { [key: string]: any } = {};
+    const monthData: { [key: string]: any } = {};
     
     filteredReports.forEach(report => {
       if (report && report.month && report.newsCount) {
-        const periodLabel = report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat';
-        const key = `${report.month}-${periodLabel}`;
+        if (!monthData[report.month]) {
+          monthData[report.month] = {
+            month: report.month,
+            print: 0,
+            tv: 0,
+            internet: 0,
+            total: 0
+          };
+        }
         
-        periodData[key] = {
-          month: report.month,
-          period: periodLabel,
-          print: report.newsCount?.print || 0,
-          tv: report.newsCount?.tv || 0,
-          internet: report.newsCount?.internet || 0,
-          total: (report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0)
-        };
+        // Aynı ay için değerleri topla
+        monthData[report.month].print += report.newsCount?.print || 0;
+        monthData[report.month].tv += report.newsCount?.tv || 0;
+        monthData[report.month].internet += report.newsCount?.internet || 0;
+        monthData[report.month].total += (report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0);
       }
     });
     
-    return Object.values(periodData).sort((a: any, b: any) => a.month.localeCompare(b.month));
+    return Object.values(monthData).sort((a: any, b: any) => a.month.localeCompare(b.month));
   };
 
   const getAdEquivalentData = () => {
-    return filteredReports.filter(report => report && report.month && report.adEquivalent).map(report => ({
-      month: report.month,
-      print: report.adEquivalent?.print || 0,
-      tv: report.adEquivalent?.tv || 0,
-      internet: report.adEquivalent?.internet || 0,
-      total: (report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0)
-    })).sort((a, b) => a.month.localeCompare(b.month));
+    const monthData: { [key: string]: any } = {};
+    
+    filteredReports.forEach(report => {
+      if (report && report.month && report.adEquivalent) {
+        if (!monthData[report.month]) {
+          monthData[report.month] = {
+            month: report.month,
+            print: 0,
+            tv: 0,
+            internet: 0,
+            total: 0
+          };
+        }
+        
+        monthData[report.month].print += report.adEquivalent?.print || 0;
+        monthData[report.month].tv += report.adEquivalent?.tv || 0;
+        monthData[report.month].internet += report.adEquivalent?.internet || 0;
+        monthData[report.month].total += (report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0);
+      }
+    });
+    
+    return Object.values(monthData).sort((a: any, b: any) => a.month.localeCompare(b.month));
   };
 
   const getTotalReachData = () => {
-    return filteredReports.filter(report => report && report.month && report.totalReach).map(report => ({
-      month: report.month,
-      print: report.totalReach?.print || 0,
-      tv: report.totalReach?.tv || 0,
-      internet: report.totalReach?.internet || 0,
-      total: (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0)
-    })).sort((a, b) => a.month.localeCompare(b.month));
+    const monthData: { [key: string]: any } = {};
+    
+    filteredReports.forEach(report => {
+      if (report && report.month && report.totalReach) {
+        if (!monthData[report.month]) {
+          monthData[report.month] = {
+            month: report.month,
+            print: 0,
+            tv: 0,
+            internet: 0,
+            total: 0
+          };
+        }
+        
+        monthData[report.month].print += report.totalReach?.print || 0;
+        monthData[report.month].tv += report.totalReach?.tv || 0;
+        monthData[report.month].internet += report.totalReach?.internet || 0;
+        monthData[report.month].total += (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0);
+      }
+    });
+    
+    return Object.values(monthData).sort((a: any, b: any) => a.month.localeCompare(b.month));
   };
 
   const handleExport = async (format: 'csv' | 'pdf') => {
@@ -282,6 +317,7 @@ const NewsReports: React.FC = () => {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
+                  <Legend />
                   <Bar dataKey="print" fill="#8884d8" name="Basın" />
                   <Bar dataKey="tv" fill="#82ca9d" name="TV" />
                   <Bar dataKey="internet" fill="#ffc658" name="İnternet" />
@@ -303,9 +339,10 @@ const NewsReports: React.FC = () => {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                    <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" />
-                    <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" />
-                    <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
+                    <Legend />
+                    <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" strokeWidth={2} />
+                    <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" strokeWidth={2} />
+                    <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -324,9 +361,10 @@ const NewsReports: React.FC = () => {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                  <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" />
-                  <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" />
-                  <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" />
+                  <Legend />
+                  <Line type="monotone" dataKey="print" stroke="#8884d8" name="Basın" strokeWidth={2} />
+                  <Line type="monotone" dataKey="tv" stroke="#82ca9d" name="TV" strokeWidth={2} />
+                  <Line type="monotone" dataKey="internet" stroke="#ffc658" name="İnternet" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
               </div>
