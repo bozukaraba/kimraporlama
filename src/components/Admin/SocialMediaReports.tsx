@@ -49,6 +49,7 @@ const SocialMediaReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
   const [exportLoading, setExportLoading] = useState<string>('');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
@@ -74,7 +75,7 @@ const SocialMediaReports: React.FC = () => {
   useEffect(() => {
     filterReports();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reports, yearFilter, platformFilter]);
+  }, [reports, yearFilter, monthFilter, platformFilter]);
 
   const fetchReports = async () => {
     try {
@@ -106,6 +107,10 @@ const SocialMediaReports: React.FC = () => {
       filtered = filtered.filter(report => report.year.toString() === yearFilter);
     }
     
+    if (monthFilter !== 'all') {
+      filtered = filtered.filter(report => report.month === monthFilter);
+    }
+    
     if (platformFilter !== 'all') {
       filtered = filtered.filter(report => report.platform === platformFilter);
     }
@@ -116,6 +121,23 @@ const SocialMediaReports: React.FC = () => {
   const getAvailableYears = () => {
     const years = Array.from(new Set(reports.map(report => report.year)));
     return years.sort((a, b) => b - a);
+  };
+
+  const getAvailableMonths = () => {
+    let reportsToCheck = reports;
+    
+    if (yearFilter !== 'all') {
+      reportsToCheck = reports.filter(report => report.year.toString() === yearFilter);
+    }
+    
+    const months = Array.from(new Set(reportsToCheck.map(report => report.month)));
+    
+    const monthOrder = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+    
+    return months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
   };
 
   const getAvailablePlatforms = () => {
@@ -155,7 +177,7 @@ const SocialMediaReports: React.FC = () => {
       setExportLoading(format);
       setExportMenuAnchor(null);
       
-      await exportSocialMediaReport(filteredReports, format, yearFilter, platformFilter);
+      await exportSocialMediaReport(filteredReports, format, yearFilter, monthFilter);
       
     } catch (error) {
       console.error('Export error:', error);
@@ -279,13 +301,31 @@ const SocialMediaReports: React.FC = () => {
             select
             label="Yıl Filtresi"
             value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
+            onChange={(e) => {
+              setYearFilter(e.target.value);
+              setMonthFilter('all');
+            }}
             size="small"
             sx={{ minWidth: 120 }}
           >
             <MenuItem value="all">Tümü</MenuItem>
             {getAvailableYears().map(year => (
               <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
+            ))}
+          </TextField>
+          
+          <TextField
+            select
+            label="Ay Filtresi"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            size="small"
+            sx={{ minWidth: 120 }}
+            disabled={getAvailableMonths().length === 0}
+          >
+            <MenuItem value="all">Tümü</MenuItem>
+            {getAvailableMonths().map(month => (
+              <MenuItem key={month} value={month}>{month}</MenuItem>
             ))}
           </TextField>
           

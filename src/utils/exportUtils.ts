@@ -285,3 +285,155 @@ export const exportRPAReport = async (
   
   throw new Error('Desteklenmeyen format');
 };
+
+// Tüm Raporları Export Etme Fonksiyonu
+export const exportAllReports = async (
+  format: 'csv' | 'pdf',
+  yearFilter: string = 'all',
+  monthFilter: string = 'all'
+): Promise<void> => {
+  try {
+    const { collection, getDocs } = await import('firebase/firestore');
+    const { db } = await import('../firebase/config');
+    
+    // Tüm raporları fetch et
+    const [cimerSnapshot, webSnapshot, socialSnapshot, rpaSnapshot, newsSnapshot] = await Promise.all([
+      getDocs(collection(db, 'cimerReports')),
+      getDocs(collection(db, 'webAnalyticsReports')),
+      getDocs(collection(db, 'socialMediaReports')),
+      getDocs(collection(db, 'rpaReports')),
+      getDocs(collection(db, 'newsReports'))
+    ]);
+
+    // Filtreleme fonksiyonu
+    const filterReport = (doc: any) => {
+      const data = doc.data();
+      let matches = true;
+      
+      if (yearFilter !== 'all' && data.year?.toString() !== yearFilter) {
+        matches = false;
+      }
+      
+      if (monthFilter !== 'all' && data.month !== monthFilter) {
+        matches = false;
+      }
+      
+      return matches;
+    };
+
+    // Filtrelenmiş veriler
+    const cimerReports = cimerSnapshot.docs.filter(filterReport).map(doc => doc.data());
+    const webReports = webSnapshot.docs.filter(filterReport).map(doc => doc.data());
+    const socialReports = socialSnapshot.docs.filter(filterReport).map(doc => doc.data());
+    const rpaReports = rpaSnapshot.docs.filter(filterReport).map(doc => doc.data());
+    const newsReports = newsSnapshot.docs.filter(filterReport).map(doc => doc.data());
+
+    const title = `Tüm_Raporlar_${yearFilter !== 'all' ? yearFilter : 'Tüm_Yıllar'}_${monthFilter !== 'all' ? monthFilter : 'Tüm_Aylar'}`;
+    
+    if (format === 'csv') {
+      // Her rapor türü için ayrı CSV sayfası oluştur
+      let csvContent = '';
+      
+      // CİMER Raporları
+      if (cimerReports.length > 0) {
+        csvContent += 'CİMER RAPORLARI\n';
+        csvContent += 'Ay,Başvuru Sayısı,İşlenen Başvuru,Başarı Oranı,En Çok Başvuru Alan Birim,En Sık Konu\n';
+        cimerReports.forEach(report => {
+          csvContent += `"${formatMonthToTurkish(report.month)}","${report.applications || 0}","${report.processedApplications || 0}","${(((report.processedApplications || 0) / (report.applications || 1)) * 100).toFixed(1)}%","${report.topDepartments?.[0]?.name || 'Belirtilmemiş'}","${report.applicationTopics?.[0]?.topic || 'Belirtilmemiş'}"\n`;
+        });
+        csvContent += '\n';
+      }
+
+      // Web Analitik Raporları
+      if (webReports.length > 0) {
+        csvContent += 'WEB ANALİTİK RAPORLARI\n';
+        csvContent += 'Ay,Web Sitesi Ziyaretçi,Portal Ziyaretçi,Web Sitesi Sayfa Görüntüleme,Portal Sayfa Görüntüleme\n';
+        webReports.forEach(report => {
+          csvContent += `"${formatMonthToTurkish(report.month)}","${report.visitors?.website || 0}","${report.visitors?.portal || 0}","${report.pageViews?.website || 0}","${report.pageViews?.portal || 0}"\n`;
+        });
+        csvContent += '\n';
+      }
+
+      // Sosyal Medya Raporları
+      if (socialReports.length > 0) {
+        csvContent += 'SOSYAL MEDYA RAPORLARI\n';
+        csvContent += 'Ay,Platform,Takipçi,İleti,Beğeni,Yorum,Görüntülenme,Yeni Takipçi\n';
+        socialReports.forEach(report => {
+          csvContent += `"${formatMonthToTurkish(report.month)}","${report.platform}","${report.followers || 0}","${report.posts || 0}","${report.likes || 0}","${report.comments || 0}","${report.views || 0}","${report.newFollowers || 0}"\n`;
+        });
+        csvContent += '\n';
+      }
+
+      // RPA Raporları
+      if (rpaReports.length > 0) {
+        csvContent += 'RPA RAPORLARI\n';
+        csvContent += 'Ay,Gelen Mail,İletilen Mail,En Çok Mail Alan Adres\n';
+        rpaReports.forEach(report => {
+          csvContent += `"${formatMonthToTurkish(report.month)}","${report.incomingEmails || 0}","${report.sentEmails || 0}","${report.topEmailRecipients?.[0]?.email || 'Belirtilmemiş'}"\n`;
+        });
+        csvContent += '\n';
+      }
+
+      // Haber Raporları
+      if (newsReports.length > 0) {
+        csvContent += 'HABER RAPORLARI\n';
+        csvContent += 'Ay,İçerik,Basın Haber,TV Haber,İnternet Haber,Toplam Reklam Eşdeğeri,Toplam Erişim\n';
+        newsReports.forEach(report => {
+          const totalAdEquivalent = (report.adEquivalent?.print || 0) + (report.adEquivalent?.tv || 0) + (report.adEquivalent?.internet || 0);
+          const totalReach = (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0);
+          csvContent += `"${formatMonthToTurkish(report.month)}","${report.period === 'ahmet-hamdi-atalay' ? 'Ahmet Hamdi Atalay' : 'Türksat'}","${report.newsCount?.print || 0}","${report.newsCount?.tv || 0}","${report.newsCount?.internet || 0}","${totalAdEquivalent}","${totalReach}"\n`;
+        });
+      }
+
+      // CSV dosyasını indir
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${title}.csv`;
+      link.click();
+      return;
+    }
+
+    if (format === 'pdf') {
+      // PDF için özet istatistik tablosu oluştur
+      const summaryData = [
+        {
+          'Rapor Türü': 'CİMER',
+          'Toplam Kayıt': cimerReports.length,
+          'Toplam Başvuru': cimerReports.reduce((sum, report) => sum + (report.applications || 0), 0).toLocaleString('tr-TR'),
+          'Toplam İşlenen': cimerReports.reduce((sum, report) => sum + (report.processedApplications || 0), 0).toLocaleString('tr-TR')
+        },
+        {
+          'Rapor Türü': 'Web Analitik',
+          'Toplam Kayıt': webReports.length,
+          'Toplam Web Ziyaretçi': webReports.reduce((sum, report) => sum + (report.visitors?.website || 0), 0).toLocaleString('tr-TR'),
+          'Toplam Portal Ziyaretçi': webReports.reduce((sum, report) => sum + (report.visitors?.portal || 0), 0).toLocaleString('tr-TR')
+        },
+        {
+          'Rapor Türü': 'Sosyal Medya',
+          'Toplam Kayıt': socialReports.length,
+          'Toplam Takipçi': socialReports.reduce((sum, report) => sum + (report.followers || 0), 0).toLocaleString('tr-TR'),
+          'Toplam Beğeni': socialReports.reduce((sum, report) => sum + (report.likes || 0), 0).toLocaleString('tr-TR')
+        },
+        {
+          'Rapor Türü': 'RPA',
+          'Toplam Kayıt': rpaReports.length,
+          'Toplam Gelen Mail': rpaReports.reduce((sum, report) => sum + (report.incomingEmails || 0), 0).toLocaleString('tr-TR'),
+          'Toplam İletilen Mail': rpaReports.reduce((sum, report) => sum + (report.sentEmails || 0), 0).toLocaleString('tr-TR')
+        },
+        {
+          'Rapor Türü': 'Haber',
+          'Toplam Kayıt': newsReports.length,
+          'Toplam Haber': newsReports.reduce((sum, report) => sum + (report.newsCount?.print || 0) + (report.newsCount?.tv || 0) + (report.newsCount?.internet || 0), 0).toLocaleString('tr-TR'),
+          'Toplam Erişim': newsReports.reduce((sum, report) => sum + (report.totalReach?.print || 0) + (report.totalReach?.tv || 0) + (report.totalReach?.internet || 0), 0).toLocaleString('tr-TR')
+        }
+      ];
+
+      await printToPDF(title, summaryData, []);
+      return;
+    }
+  } catch (error) {
+    console.error('Export all reports error:', error);
+    throw new Error('Tüm raporları export ederken hata oluştu.');
+  }
+};
