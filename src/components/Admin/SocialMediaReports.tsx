@@ -64,6 +64,8 @@ const SocialMediaReports: React.FC = () => {
     posts: '',
     likes: '',
     comments: '',
+    shares: '',
+    retweets: '',
     views: '',
     newFollowers: '',
     mostEngagedPost: ''
@@ -158,6 +160,8 @@ const SocialMediaReports: React.FC = () => {
         posts: report.posts || 0,
         likes: report.likes || 0,
         comments: report.comments || 0,
+        shares: report.shares || 0,
+        retweets: report.retweets || 0,
         views: report.views || 0,
         newFollowers: report.newFollowers || 0
       }));
@@ -199,6 +203,8 @@ const SocialMediaReports: React.FC = () => {
       posts: String(report.posts || 0),
       likes: String(report.likes || 0),
       comments: String(report.comments || 0),
+      shares: String(report.shares || 0),
+      retweets: String(report.retweets || 0),
       views: String(report.views || 0),
       newFollowers: String(report.newFollowers || 0),
       mostEngagedPost: report.mostEngagedPost || ''
@@ -215,6 +221,8 @@ const SocialMediaReports: React.FC = () => {
       posts: '',
       likes: '',
       comments: '',
+      shares: '',
+      retweets: '',
       views: '',
       newFollowers: '',
       mostEngagedPost: ''
@@ -236,6 +244,8 @@ const SocialMediaReports: React.FC = () => {
         posts: parseInt(editFormData.posts) || 0,
         likes: parseInt(editFormData.likes) || 0,
         comments: parseInt(editFormData.comments) || 0,
+        shares: parseInt(editFormData.shares) || 0,
+        retweets: parseInt(editFormData.retweets) || 0,
         views: parseInt(editFormData.views) || 0,
         newFollowers: parseInt(editFormData.newFollowers) || 0,
         mostEngagedPost: editFormData.mostEngagedPost,
@@ -459,6 +469,7 @@ const SocialMediaReports: React.FC = () => {
                   <TableCell align="right"><strong>İleti</strong></TableCell>
                   <TableCell align="right"><strong>Beğeni</strong></TableCell>
                   <TableCell align="right"><strong>Yorum</strong></TableCell>
+                  <TableCell align="right"><strong>Paylaşım/RT</strong></TableCell>
                   <TableCell align="right"><strong>Görüntülenme</strong></TableCell>
                   <TableCell align="right"><strong>Yeni Takipçi</strong></TableCell>
                   <TableCell><strong>En Çok Etkileşim</strong></TableCell>
@@ -502,6 +513,14 @@ const SocialMediaReports: React.FC = () => {
                     <TableCell align="right">
                       <Typography variant="body2">
                         {(report.comments || 0).toLocaleString('tr-TR')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" color="info.main">
+                        {report.platform === 'X' 
+                          ? (report.retweets || 0).toLocaleString('tr-TR')
+                          : (report.shares || 0).toLocaleString('tr-TR')
+                        }
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
@@ -601,6 +620,23 @@ const SocialMediaReports: React.FC = () => {
               onChange={(e) => setEditFormData({...editFormData, comments: e.target.value})}
               fullWidth
             />
+            {editFormData.platform === 'X' ? (
+              <TextField
+                label="Retweet Sayısı"
+                type="number"
+                value={editFormData.retweets}
+                onChange={(e) => setEditFormData({...editFormData, retweets: e.target.value})}
+                fullWidth
+              />
+            ) : (editFormData.platform === 'LinkedIn' || editFormData.platform === 'Facebook') ? (
+              <TextField
+                label="Paylaşım Sayısı"
+                type="number"
+                value={editFormData.shares}
+                onChange={(e) => setEditFormData({...editFormData, shares: e.target.value})}
+                fullWidth
+              />
+            ) : null}
             <TextField
               label="Görüntülenme Sayısı"
               type="number"
