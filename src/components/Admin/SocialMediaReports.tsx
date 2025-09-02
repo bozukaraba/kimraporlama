@@ -170,6 +170,33 @@ const SocialMediaReports: React.FC = () => {
   };
 
   const getEngagementData = () => {
+    // Aylık toplam etkileşimi hesapla (tüm platformları birleştir)
+    const monthlyData = filteredReports
+      .filter(report => report && report.month)
+      .reduce((acc, report) => {
+        const monthKey = report.month;
+        const engagement = (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0) + (report.reshares || 0);
+        
+        if (!acc[monthKey]) {
+          acc[monthKey] = {
+            month: formatMonthToTurkish(report.month),
+            monthOriginal: report.month,
+            totalEngagement: 0,
+            platformCount: 0
+          };
+        }
+        
+        acc[monthKey].totalEngagement += engagement;
+        acc[monthKey].platformCount += 1;
+        
+        return acc;
+      }, {} as Record<string, any>);
+
+    return Object.values(monthlyData).sort((a: any, b: any) => a.monthOriginal.localeCompare(b.monthOriginal));
+  };
+
+  const getPlatformEngagementData = () => {
+    // Platform bazında etkileşim verileri
     return filteredReports
       .filter(report => report && report.month)
       .sort((a, b) => a.month.localeCompare(b.month))
@@ -177,7 +204,8 @@ const SocialMediaReports: React.FC = () => {
         month: formatMonthToTurkish(report.month),
         monthOriginal: report.month,
         platform: report.platform || '',
-        totalEngagement: (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0) + (report.reshares || 0)
+        engagement: (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0) + (report.reshares || 0),
+        platformLabel: `${report.platform} - ${formatMonthToTurkish(report.month)}`
       }));
   };
 
@@ -292,6 +320,7 @@ const SocialMediaReports: React.FC = () => {
 
   const chartData = getChartData();
   const engagementData = getEngagementData();
+  const platformEngagementData = getPlatformEngagementData();
 
   return (
     <Box>
@@ -429,31 +458,59 @@ const SocialMediaReports: React.FC = () => {
             </Card>
           </Box>
 
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Toplam Etkileşim Trendi
-              </Typography>
-              <div id="social-interaction-chart">
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={engagementData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), '']} />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="totalEngagement" 
-                      stroke="#ff7300" 
-                      name="Toplam Etkileşim"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Aylık Toplam Etkileşim Trendi (Tüm Platformlar)
+                </Typography>
+                <div id="social-interaction-chart">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={engagementData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), 'Toplam Etkileşim']} />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="totalEngagement" 
+                        stroke="#ff7300" 
+                        name="Toplam Etkileşim"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Platform Bazında Etkileşim
+                </Typography>
+                <div id="platform-engagement-chart">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={platformEngagementData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="platformLabel" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                      />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [Number(value).toLocaleString('tr-TR'), 'Etkileşim']} />
+                      <Legend />
+                      <Bar dataKey="engagement" fill="#8884d8" name="Etkileşim" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </Box>
         </Box>
       )}
 
