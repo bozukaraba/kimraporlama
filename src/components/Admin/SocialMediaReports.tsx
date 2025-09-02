@@ -150,23 +150,38 @@ const SocialMediaReports: React.FC = () => {
   };
 
   const getChartData = () => {
-    return filteredReports
+    // Aylık toplam verileri hesapla (tüm platformları birleştir)
+    const monthlyData = filteredReports
       .filter(report => report && report.month)
-      .sort((a, b) => a.month.localeCompare(b.month))
-      .map(report => ({
-        month: formatMonthToTurkish(report.month),
-        monthOriginal: report.month,
-        platform: report.platform || '',
-        followers: report.followers || 0,
-        posts: report.posts || 0,
-        likes: report.likes || 0,
-        comments: report.comments || 0,
-        shares: report.shares || 0,
-        retweets: report.retweets || 0,
-        reshares: report.reshares || 0,
-        views: report.views || 0,
-        newFollowers: report.newFollowers || 0
-      }));
+      .reduce((acc, report) => {
+        const monthKey = report.month;
+        
+        if (!acc[monthKey]) {
+          acc[monthKey] = {
+            month: formatMonthToTurkish(report.month),
+            monthOriginal: report.month,
+            followers: 0,
+            posts: 0,
+            likes: 0,
+            comments: 0,
+            views: 0,
+            newFollowers: 0,
+            platformCount: 0
+          };
+        }
+        
+        acc[monthKey].followers += report.followers || 0;
+        acc[monthKey].posts += report.posts || 0;
+        acc[monthKey].likes += report.likes || 0;
+        acc[monthKey].comments += report.comments || 0;
+        acc[monthKey].views += report.views || 0;
+        acc[monthKey].newFollowers += report.newFollowers || 0;
+        acc[monthKey].platformCount += 1;
+        
+        return acc;
+      }, {} as Record<string, any>);
+
+    return Object.values(monthlyData).sort((a: any, b: any) => a.monthOriginal.localeCompare(b.monthOriginal));
   };
 
   const getEngagementData = () => {
@@ -413,7 +428,7 @@ const SocialMediaReports: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Takipçi Sayısı Trendi
+                  Aylık Toplam Takipçi Sayısı (Tüm Platformlar)
                 </Typography>
                 <div id="social-followers-chart">
                   <ResponsiveContainer width="100%" height={300}>
@@ -439,7 +454,7 @@ const SocialMediaReports: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Görüntülenme ve Beğeni
+                  Aylık Toplam Görüntülenme ve Beğeni (Tüm Platformlar)
                 </Typography>
                 <div id="social-engagement-chart">
                   <ResponsiveContainer width="100%" height={300}>
