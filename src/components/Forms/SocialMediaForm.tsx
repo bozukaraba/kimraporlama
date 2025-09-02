@@ -36,6 +36,7 @@ const SocialMediaForm: React.FC = () => {
   const [comments, setComments] = useState('');
   const [shares, setShares] = useState('');
   const [retweets, setRetweets] = useState('');
+  const [reshares, setReshares] = useState('');
   const [views, setViews] = useState('');
   const [newFollowers, setNewFollowers] = useState('');
   const [mostEngagedPost, setMostEngagedPost] = useState('');
@@ -77,6 +78,8 @@ const SocialMediaForm: React.FC = () => {
         reportData.retweets = parseInt(retweets);
       } else if (platform === 'LinkedIn' || platform === 'Facebook') {
         reportData.shares = parseInt(shares);
+      } else if (platform === 'NextSosyal') {
+        reportData.reshares = parseInt(reshares);
       }
 
       if (mostEngagedPost) {
@@ -94,6 +97,7 @@ const SocialMediaForm: React.FC = () => {
       setComments('');
       setShares('');
       setRetweets('');
+      setReshares('');
       setViews('');
       setNewFollowers('');
       setMostEngagedPost('');
@@ -237,6 +241,15 @@ const SocialMediaForm: React.FC = () => {
                   type="number"
                   value={shares}
                   onChange={(e) => setShares(e.target.value)}
+                  inputProps={{ min: 0 }}
+                />
+              ) : platform === 'NextSosyal' ? (
+                <TextField
+                  fullWidth
+                  label="Yeniden Paylaşım Sayısı"
+                  type="number"
+                  value={reshares}
+                  onChange={(e) => setReshares(e.target.value)}
                   inputProps={{ min: 0 }}
                 />
               ) : (

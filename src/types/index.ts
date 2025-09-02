@@ -47,6 +47,7 @@ export interface SocialMediaReport {
   comments: number;
   shares?: number;      // LinkedIn, Facebook için
   retweets?: number;    // X için
+  reshares?: number;    // NextSosyal için
   views: number;
   newFollowers: number;
   mostEngagedPost?: string;

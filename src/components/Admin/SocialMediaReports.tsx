@@ -66,6 +66,7 @@ const SocialMediaReports: React.FC = () => {
     comments: '',
     shares: '',
     retweets: '',
+    reshares: '',
     views: '',
     newFollowers: '',
     mostEngagedPost: ''
@@ -162,6 +163,7 @@ const SocialMediaReports: React.FC = () => {
         comments: report.comments || 0,
         shares: report.shares || 0,
         retweets: report.retweets || 0,
+        reshares: report.reshares || 0,
         views: report.views || 0,
         newFollowers: report.newFollowers || 0
       }));
@@ -175,7 +177,7 @@ const SocialMediaReports: React.FC = () => {
         month: formatMonthToTurkish(report.month),
         monthOriginal: report.month,
         platform: report.platform || '',
-        totalEngagement: (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0)
+        totalEngagement: (report.likes || 0) + (report.comments || 0) + (report.shares || 0) + (report.retweets || 0) + (report.reshares || 0)
       }));
   };
 
@@ -205,6 +207,7 @@ const SocialMediaReports: React.FC = () => {
       comments: String(report.comments || 0),
       shares: String(report.shares || 0),
       retweets: String(report.retweets || 0),
+      reshares: String(report.reshares || 0),
       views: String(report.views || 0),
       newFollowers: String(report.newFollowers || 0),
       mostEngagedPost: report.mostEngagedPost || ''
@@ -223,6 +226,7 @@ const SocialMediaReports: React.FC = () => {
       comments: '',
       shares: '',
       retweets: '',
+      reshares: '',
       views: '',
       newFollowers: '',
       mostEngagedPost: ''
@@ -246,6 +250,7 @@ const SocialMediaReports: React.FC = () => {
         comments: parseInt(editFormData.comments) || 0,
         shares: parseInt(editFormData.shares) || 0,
         retweets: parseInt(editFormData.retweets) || 0,
+        reshares: parseInt(editFormData.reshares) || 0,
         views: parseInt(editFormData.views) || 0,
         newFollowers: parseInt(editFormData.newFollowers) || 0,
         mostEngagedPost: editFormData.mostEngagedPost,
@@ -519,6 +524,8 @@ const SocialMediaReports: React.FC = () => {
                       <Typography variant="body2" color="info.main">
                         {report.platform === 'X' 
                           ? (report.retweets || 0).toLocaleString('tr-TR')
+                          : report.platform === 'NextSosyal'
+                          ? (report.reshares || 0).toLocaleString('tr-TR')
                           : (report.shares || 0).toLocaleString('tr-TR')
                         }
                       </Typography>
@@ -634,6 +641,14 @@ const SocialMediaReports: React.FC = () => {
                 type="number"
                 value={editFormData.shares}
                 onChange={(e) => setEditFormData({...editFormData, shares: e.target.value})}
+                fullWidth
+              />
+            ) : editFormData.platform === 'NextSosyal' ? (
+              <TextField
+                label="Yeniden Paylaşım Sayısı"
+                type="number"
+                value={editFormData.reshares}
+                onChange={(e) => setEditFormData({...editFormData, reshares: e.target.value})}
                 fullWidth
               />
             ) : null}
